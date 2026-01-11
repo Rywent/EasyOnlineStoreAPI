@@ -5,15 +5,15 @@
 
 | Method | Endpoint | Description | Request model |
 |:------|:---------|:---------|:----------|
-| `GET` | `/api/products` | **pagination** | `page=1&pageSize=10` |
+| `GET` | `/api/products` | **pagination** | `?page=1&pageSize=10` |
 | `GET` | `api/products/all` | **all products** | - |
 | `GET` | `api/products/{id}` | **by id** | `id: Guid` |
-| `POST`| `api/products` | **Create** | `ProductCreate` |
-| `PUT` | `api/products` | **Update** | `ProductUpdate` |
+| `POST`| `api/products` | **Create** | `ProductCreateRequest` |
+| `PUT` | `api/products/{id}` | **Update** | `ProductUpdateRequest` |
 | `DELETE` | `api/products/{id}` | **Delete** | `id: Guid` |
 
-#### Product Requests
-ProductCreate
+#### Product details
+ProductCreateRequest
 ```json
 {
   "name": "string",
@@ -30,7 +30,7 @@ ProductCreate
   "warehouseId": "guid"
 }
 ```
-ProductUpdate
+ProductUpdateRequest
 ```json
 {
   "name": "string",
