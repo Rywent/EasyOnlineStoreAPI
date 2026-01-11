@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
-using EasyOnlineStore.Domain.Models;
 using EasyOnlineStore.Application.DTOs.Requests.Product;
 using EasyOnlineStore.Application.DTOs.Responses.Product;
+using EasyOnlineStore.Domain.Models.Products;
 
 
 namespace EasyOnlineStore.Application.Mapping;

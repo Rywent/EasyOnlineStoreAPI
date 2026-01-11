@@ -1,6 +1,6 @@
 ﻿using EasyOnlineStore.Domain.Enums;
 
-namespace EasyOnlineStore.Domain.Models;
+namespace EasyOnlineStore.Domain.Models.Orders;
 
 public class Order
 {

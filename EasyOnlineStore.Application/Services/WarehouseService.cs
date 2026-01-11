@@ -4,7 +4,7 @@ using EasyOnlineStore.Application.DTOs.Requests.Warehouse;
 using EasyOnlineStore.Application.DTOs.Responses.Warehouse;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Persistence.Repositories;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Warehouses;
 
 
 namespace EasyOnlineStore.Application.Services;

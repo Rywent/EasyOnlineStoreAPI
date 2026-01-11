@@ -3,8 +3,9 @@ using EasyOnlineStore.Application.DTOs.Requests.Product;
 using EasyOnlineStore.Application.DTOs.Responses.Product;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Application.Exceptions;
-using EasyOnlineStore.Domain.Models;
 using EasyOnlineStore.Persistence.Repositories;
+using EasyOnlineStore.Domain.Models.Products;
+
 namespace EasyOnlineStore.Application.Services;
 
 public class ProductsService : IProductService

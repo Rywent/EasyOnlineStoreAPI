@@ -1,4 +1,7 @@
-﻿namespace EasyOnlineStore.Domain.Models;
+﻿using EasyOnlineStore.Domain.Models.Products;
+using EasyOnlineStore.Domain.Models.Warehouses;
+
+namespace EasyOnlineStore.Domain.Models.Orders;
 
 public class OrderItem
 {

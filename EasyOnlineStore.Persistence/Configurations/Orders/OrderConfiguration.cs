@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Orders;
 
-namespace EasyOnlineStore.Persistence.Configurations;
+namespace EasyOnlineStore.Persistence.Configurations.Orders;
 
 
 public class OrderConfiguration : IEntityTypeConfiguration<Order>

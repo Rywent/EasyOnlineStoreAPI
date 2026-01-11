@@ -1,8 +1,8 @@
-﻿using EasyOnlineStore.Domain.Models;
+﻿using EasyOnlineStore.Domain.Models.Carts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EasyOnlineStore.Persistence.Configurations;
+namespace EasyOnlineStore.Persistence.Configurations.Carts;
 
 public class CartItemConfiguration : IEntityTypeConfiguration<CartItem>
 {

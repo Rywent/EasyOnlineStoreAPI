@@ -1,5 +1,5 @@
 ﻿using EasyOnlineStore.Domain.Enums;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Orders;
 namespace EasyOnlineStore.Domain.Interfaces;
 
 public interface IOrderRepository

@@ -1,4 +1,7 @@
-﻿using EasyOnlineStore.Domain.Models;
+﻿using EasyOnlineStore.Domain.Models.Carts;
+using EasyOnlineStore.Domain.Models.Orders;
+using EasyOnlineStore.Domain.Models.Products;
+using EasyOnlineStore.Domain.Models.Warehouses;
 using EasyOnlineStore.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 

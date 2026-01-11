@@ -2,7 +2,8 @@
 using EasyOnlineStore.Application.DTOs.Requests.Order;
 using EasyOnlineStore.Application.DTOs.Requests.Product;
 using EasyOnlineStore.Application.DTOs.Responses.Order;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Orders;
+using EasyOnlineStore.Domain.Models.Products;
 
 namespace EasyOnlineStore.Application.Mapping;
 

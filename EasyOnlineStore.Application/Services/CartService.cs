@@ -3,7 +3,8 @@ using EasyOnlineStore.Application.DTOs.Requests.Cart;
 using EasyOnlineStore.Application.DTOs.Responses.Cart;
 using EasyOnlineStore.Application.Exceptions;
 using EasyOnlineStore.Application.Interfaces;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Carts;
+using EasyOnlineStore.Domain.Models.Products;
 using EasyOnlineStore.Persistence.Repositories;
 
 namespace EasyOnlineStore.Application.Services;

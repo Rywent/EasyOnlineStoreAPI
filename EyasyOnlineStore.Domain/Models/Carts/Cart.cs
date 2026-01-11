@@ -1,4 +1,4 @@
-﻿namespace EasyOnlineStore.Domain.Models;
+﻿namespace EasyOnlineStore.Domain.Models.Carts;
 
 public class Cart
 {

@@ -5,6 +5,9 @@ using EasyOnlineStore.Application.Exceptions;
 using EasyOnlineStore.Domain.Enums;
 using EasyOnlineStore.Domain.Models;
 using EasyOnlineStore.Persistence.Repositories;
+using EasyOnlineStore.Domain.Models.Products;
+using EasyOnlineStore.Domain.Models.Carts;
+using EasyOnlineStore.Domain.Models.Orders;
 
 
 namespace EasyOnlineStore.Application.Services

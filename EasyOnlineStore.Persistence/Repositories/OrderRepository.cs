@@ -1,6 +1,6 @@
 ﻿using EasyOnlineStore.Domain.Enums;
 using EasyOnlineStore.Domain.Interfaces;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Orders;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations.Operations.Builders;
 

@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Products;
 
 
-namespace EasyOnlineStore.Persistence.Configurations;
+namespace EasyOnlineStore.Persistence.Configurations.Products;
 
 public class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
@@ -20,7 +20,12 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .HasForeignKey(p => p.WarehouseId)
             .IsRequired()
             .OnDelete(DeleteBehavior.Cascade);
-        
+
+        builder.HasMany(p => p.Images)
+            .WithOne(pi => pi.Product)
+            .HasForeignKey(pi => pi.ProductId)
+            .OnDelete(DeleteBehavior.Cascade);
+
     }
 }
 

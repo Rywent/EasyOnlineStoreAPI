@@ -1,5 +1,5 @@
 ﻿using EasyOnlineStore.Domain.Interfaces;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Warehouses;
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyOnlineStore.Persistence.Repositories;

@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using EasyOnlineStore.Application.DTOs.Requests.Cart;
 using EasyOnlineStore.Application.DTOs.Responses.Cart;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Carts;
 
 namespace EasyOnlineStore.Application.Mapping;
 

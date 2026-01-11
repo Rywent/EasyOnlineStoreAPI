@@ -1,4 +1,4 @@
-﻿using EasyOnlineStore.Domain.Models;
+﻿using EasyOnlineStore.Domain.Models.Products;
 
 namespace EasyOnlineStore.Domain.Interfaces;
 

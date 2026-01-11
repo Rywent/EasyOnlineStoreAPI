@@ -1,9 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using EasyOnlineStore.Domain.Models;
+using EasyOnlineStore.Domain.Models.Warehouses;
 
 
-namespace EasyOnlineStore.Persistence.Configurations;
+namespace EasyOnlineStore.Persistence.Configurations.Warehouses;
 
 public class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
 {
