@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="EasyOnlineStore.API/EasyOnlineStore.API.csproj" />
+  <Project Path="EasyOnlineStore.Application/EasyOnlineStore.Application.csproj" Id="8f6baca9-1e8e-45ec-bfb8-463c89128287" />
+  <Project Path="EasyOnlineStore.Persistence/EasyOnlineStore.Persistence.csproj" />
+  <Project Path="EyasyOnlineStore.Domain/EasyOnlineStore.Domain.csproj" />
+</Solution>
