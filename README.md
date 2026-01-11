@@ -12,8 +12,16 @@
 | `PUT` | `/api/products/{id}` | **Update** | `ProductUpdateRequest` | `ProductResponse` |
 | `DELETE` | `/api/products/{id}` | **Delete** | `id: Guid` | **204** |
 
-#### Product details
-ProductCreateRequest
+### Product Images
+
+| Method | Endpoint | Description | Request model | Response |
+|:------|:---------|:------------|:--------------|:---------|
+| `GET` | `/api/products/{productId}/images` | **Get images** | - | `ProductImageResponse[]` |
+| `POST` | `/api/products/{productId}/images` | **Add image** | `ProductImageRequest` | **201** `ProductImageResponse` |
+| `DELETE` | `/api/products/{productId}/images/{imageId}` | **Delete image** | `imageId: Guid` `productId: Guid` | **204** |
+
+### Product details
+**ProductCreateRequest**
 ```json
 {
   "name": "string",
@@ -30,7 +38,7 @@ ProductCreateRequest
   "warehouseId": "guid"
 }
 ```
-ProductUpdateRequest
+**ProductUpdateRequest**
 ```json
 {
   "name": "string",
@@ -42,7 +50,7 @@ ProductUpdateRequest
   "warehouseId": "guid"
 }
 ```
-ProductResponse
+**ProductResponse**
 ```json
 {
   "id": "guid",
@@ -65,3 +73,20 @@ ProductResponse
   "warehouseId": "guid"
 }
 ```
+**ProductImageRequest**
+```json
+{
+  "imageUrl": "string"
+}
+```
+**ProductImageResponse**
+```json
+{
+  "id": "guid",
+  "imageUrl": "string"
+}
+```
+
+
+
+
