@@ -3,14 +3,14 @@
 ## Endpoints
 ### Products
 
-| Method | Endpoint | Description | Request model |
-|:------|:---------|:---------|:----------|
-| `GET` | `/api/products` | **pagination** | `?page=1&pageSize=10` |
-| `GET` | `api/products/all` | **all products** | - |
-| `GET` | `api/products/{id}` | **by id** | `id: Guid` |
-| `POST`| `api/products` | **Create** | `ProductCreateRequest` |
-| `PUT` | `api/products/{id}` | **Update** | `ProductUpdateRequest` |
-| `DELETE` | `api/products/{id}` | **Delete** | `id: Guid` |
+| Method | Endpoint | Description | Request model | Response |
+|:------|:---------|:------------|:--------------|:---------|
+| `GET` | `/api/products` | **Pagination** | `?page=1&pageSize=10` | `ProductResponse[]` |
+| `GET` | `/api/products/all` | **All products** | - | `ProductResponse[]` |
+| `GET` | `/api/products/{id}` | **By ID** | `id: Guid` | `ProductResponse` |
+| `POST` | `/api/products` | **Create** | `ProductCreateRequest` | **201** `ProductResponse` |
+| `PUT` | `/api/products/{id}` | **Update** | `ProductUpdateRequest` | `ProductResponse` |
+| `DELETE` | `/api/products/{id}` | **Delete** | `id: Guid` | **204** |
 
 #### Product details
 ProductCreateRequest
