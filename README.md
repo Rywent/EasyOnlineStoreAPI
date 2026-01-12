@@ -9,7 +9,7 @@
 | `GET` | `/api/products/all` | **All products** | - | `ProductResponse[]` |
 | `GET` | `/api/products/{id}` | **By ID** | `id: Guid` | `ProductResponse` |
 | `POST` | `/api/products` | **Create** | `ProductCreateRequest` | **201** `ProductResponse` |
-| `PUT` | `/api/products/{id}` | **Update** | `ProductUpdateRequest` | `ProductResponse` |
+| `PATCH` | `/api/products/{id}` | **Update** | `ProductUpdateRequest` | `ProductResponse` |
 | `DELETE` | `/api/products/{id}` | **Delete** | `id: Guid` | **204** |
 
 ### Product Images
