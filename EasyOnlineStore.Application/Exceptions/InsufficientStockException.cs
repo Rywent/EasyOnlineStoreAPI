@@ -11,12 +11,12 @@ public class InsufficientStockException : BusinessException
     public int AvailableQuantity { get; }
 
     public InsufficientStockException(Product product, int requestedQuantity)
-        : base($"Product '{product.Name}' (ID: {product.Id}) on warehouse '{product.WarehouseId}': requested {requestedQuantity}, available {product.Quantity}")
+        : base($"Product '{product.Name}' (ID: {product.Id}) on warehouse '{product.WarehouseId}': requested {requestedQuantity}, available {product.Stock}")
     {
         ProductId = product.Id;
         ProductName = product.Name;
         WarehouseId = product.WarehouseId;
         RequestedQuantity = requestedQuantity;
-        AvailableQuantity = product.Quantity;
+        AvailableQuantity = product.Stock;
     }
 }

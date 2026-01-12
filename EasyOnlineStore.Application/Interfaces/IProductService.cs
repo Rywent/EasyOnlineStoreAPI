@@ -10,7 +10,7 @@ public interface IProductService
 
     Task<List<ProductResponse>> GetByPageAsync(int page, int pageSize);
     Task<ProductResponse> CreateAsync(ProductCreateRequest product);
-    Task<ProductResponse> UpdateAsync(ProductUpdateRequest product);
+    Task<ProductResponse> UpdateAsync(Guid id, ProductUpdateRequest product);
     Task<bool> DeleteAsync(Guid id);
 }
 

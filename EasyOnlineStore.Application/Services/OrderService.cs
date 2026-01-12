@@ -61,7 +61,7 @@ namespace EasyOnlineStore.Application.Services
             {
                 if (!productsDict.TryGetValue(cartItem.ProductId, out var product))
                     throw new NotFoundException(nameof(Product), cartItem.ProductId);
-                if (product.Quantity < cartItem.Quantity)
+                if (product.Stock < cartItem.Quantity)
                     throw new InsufficientStockException(product, cartItem.Quantity);
             }
 
@@ -86,7 +86,7 @@ namespace EasyOnlineStore.Application.Services
 
             foreach (var orderItem in newOrder.Items)
             {
-                productsDict[orderItem.ProductId].Quantity -= orderItem.Quantity;
+                productsDict[orderItem.ProductId].Stock -= orderItem.Quantity;
                 
             }
 
@@ -132,7 +132,7 @@ namespace EasyOnlineStore.Application.Services
                 var product = products.FirstOrDefault(p => p.Id == item.ProductId);
                 if (product != null)
                 {
-                    product.Quantity += item.Quantity;
+                    product.Stock += item.Quantity;
                 }
                     
             }

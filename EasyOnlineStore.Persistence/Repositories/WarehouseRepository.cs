@@ -16,6 +16,12 @@ public class WarehouseRepository : IWarehouseRepository
     {
         return await _dbContext.Warehouses
             .AsNoTracking()
+            .Select(w => new Warehouse
+            {
+                Id = w.Id,
+                Name = w.Name,
+                Adress = w.Adress,
+            })
             .ToListAsync();
     }
     public async Task<Warehouse?> GetByIdAsync(Guid id)

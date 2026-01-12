@@ -2,9 +2,11 @@
 
 public class ProductUpdateRequest
 {
-    public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; } = 0;
-    public int Quantity { get; set; } = 0;
-    public Guid WarehouseId { get; set; }
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public string? ShortDescription { get; set; }
+    public decimal? OldPrice { get; set; }
+    public int? Stock { get; set; }
+    public decimal? Price { get; set; }
+    public Guid? WarehouseId { get; set; }
 }

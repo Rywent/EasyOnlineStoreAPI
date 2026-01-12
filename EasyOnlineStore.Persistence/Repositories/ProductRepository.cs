@@ -17,6 +17,7 @@ public class ProductRepository : IProductRepository
         return await _dbContext.Products
             .AsNoTracking()
             .Include(p => p.Warehouse)
+            .Include(p => p.Images)
             .OrderByDescending(p => p.Price)
             .ToListAsync();
     }
@@ -24,6 +25,7 @@ public class ProductRepository : IProductRepository
     {
         return await _dbContext.Products
             .Include(p => p.Warehouse)
+            .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Id == id);
 
     }
@@ -53,6 +55,7 @@ public class ProductRepository : IProductRepository
         return await _dbContext.Products
             .AsNoTracking()
             .Include(p => p.Warehouse)
+            .Include (p => p.Images)
             .OrderBy(p => p.Name)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)

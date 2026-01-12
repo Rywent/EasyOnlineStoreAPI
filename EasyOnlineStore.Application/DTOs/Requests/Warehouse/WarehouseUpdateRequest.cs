@@ -2,6 +2,10 @@
 
 public class WarehouseUpdateRequest
 {
-    public string Name { get; set; } = string.Empty;
-    public string Location { get; set; } = string.Empty;
+    public string? Name { get; set; }
+    public string? Location { get; set; }
+    public string? Adress { get; set; }
+    public string? Phone { get; set; }
+    public bool? IsActive { get; set; }
+    public decimal? DeliveryCost { get; set; }
 }

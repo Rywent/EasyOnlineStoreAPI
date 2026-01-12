@@ -2,7 +2,11 @@
 using EasyOnlineStore.Domain.Models.Orders;
 using EasyOnlineStore.Domain.Models.Products;
 using EasyOnlineStore.Domain.Models.Warehouses;
-using EasyOnlineStore.Persistence.Configurations;
+using EasyOnlineStore.Persistence.Configurations.Products;
+using EasyOnlineStore.Persistence.Configurations.Carts;
+using EasyOnlineStore.Persistence.Configurations.Orders;
+using EasyOnlineStore.Persistence.Configurations.Warehouses;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace EasyOnlineStore.Persistence;

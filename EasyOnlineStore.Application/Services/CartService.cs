@@ -40,7 +40,7 @@ public class CartService : ICartService
         if (product == null)
             throw new NotFoundException(nameof(Product), request.ProductId);
 
-        if (product.Quantity < request.Quantity)
+        if (product.Stock < request.Quantity)
             throw new InsufficientStockException(product, request.Quantity);
 
         var cartItem = _mapper.Map<CartItem>(request);

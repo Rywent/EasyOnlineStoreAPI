@@ -50,11 +50,11 @@ public class ProductsService : IProductService
 
         return _mapper.Map<ProductResponse>(createdProduct);
     }
-    public async Task<ProductResponse> UpdateAsync(ProductUpdateRequest request)
+    public async Task<ProductResponse> UpdateAsync(Guid id, ProductUpdateRequest request)
     {
-        var existingProduct = await _productRepository.GetByIdAsync(request.Id);
+        var existingProduct = await _productRepository.GetByIdAsync(id);
         if (existingProduct == null)
-            throw new NotFoundException(nameof(Product), request.Id);
+            throw new NotFoundException(nameof(Product), id);
 
         _mapper.Map(request, existingProduct);
 

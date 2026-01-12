@@ -8,9 +8,9 @@ public class Warehouse
     public string Name { get; set; } = string.Empty;
     public string Location { get; set; } = string.Empty;
     public string Adress { get; set; } = string.Empty;
-    public string? Phone {  get; set; }
+    public string Phone { get; set; } = string.Empty;
     public bool IsActive { get; set; } = true;
-    public decimal? DeliveryCost { get; set; }
+    public decimal DeliveryCost { get; set; }
     public int LikesCount { get; set; } = 0;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

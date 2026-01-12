@@ -51,11 +51,11 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = createdProduct.Id }, createdProduct);
     }
 
-    // PUT: api/products
-    [HttpPut]
-    public async Task<ActionResult<ProductResponse>> Update(ProductUpdateRequest request)
+    // PATCH: api/products
+    [HttpPatch("{id:guid}")]
+    public async Task<ActionResult<ProductResponse>> Update(Guid id, ProductUpdateRequest request)
     {
-        var updatedProduct = await _productService.UpdateAsync(request);
+        var updatedProduct = await _productService.UpdateAsync(id, request);
         return Ok(updatedProduct);
     }
 
