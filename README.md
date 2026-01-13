@@ -145,13 +145,12 @@
 | `DELETE` | `/api/orders/{id}` | **Delete order** | `id: Guid` | **204** |
 
 **Order statuses**
-- **Pending** (0)
-- **Paid** (1) 
-- **Delivering** (2)
-- **ReadyForPickup** (3)
-- **Completed** (4)
-- **Cancelled** (5)
-
+- **Pending** (1) 
+- **Paid** (2)
+- **Delivering** (3)
+- **ReadyForPickup** (4)
+- **Completed** (5)
+- **Cancelled** (6)
 
 
 
