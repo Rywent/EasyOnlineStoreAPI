@@ -91,7 +91,7 @@
 
 | Method | Endpoint | Description | Request model | Response |
 |:------|:---------|:------------|:--------------|:---------|
-| `GET` | `/api/carts` | **Pagination** | `-` | **200** `CartResponse[]` |
+| `GET` | `/api/carts` | **All carts** | `-` | **200** `CartResponse[]` |
 | `GET` | `/api/carts/{id}` | **By ID** | `id: Guid` | **200** `CartResponse` |
 | `POST` | `/api/carts` | **Create an empty cart** | `-` | **201** `CartResponse` |
 | `POST` | `/api/carts/{cartId}/items` | **Add item to cart** | `cartId: Guid` `CartAddItemRequest` |**200** `CartResponse` |
@@ -132,8 +132,25 @@
 }
 ```
 
+### 📦 Order 
 
+| Method | Endpoint | Description | Request model | Response |
+|:------|:---------|:------------|:--------------|:---------|
+| `GET` | `/api/orders` | **Pagination** | `?page=1&pageSize=10` |**200** `OrderResponse[]` |
+| `GET` | `/api/orders/all` | **All orders** | `-` | **200** `OrderResponse[]` |
+| `GET` | `/api/orders/{id}` | **By ID** | `id: Guid` | **200** `OrderResponse` |
+| `POST` | `/api/orders/{cartId}` | **Create an order from the cart** | `-` | **201** `OrderResponse` |
+| `PATCH` | `/api/orders/{orderId}` | **Add item to cart** | `?status=statusNumber` |**200** `OrderResponse` |
+| `PUT` | `/api/orders/cancel/{id}` | **Cancel order** | `id: Guid` | **200** |
+| `DELETE` | `/api/orders/{id}` | **Delete order** | `id: Guid` | **204** |
 
+**Order statuses**
+- **Pending** (0)
+- **Paid** (1) 
+- **Delivering** (2)
+- **ReadyForPickup** (3)
+- **Completed** (4)
+- **Cancelled** (5)
 
 
 
