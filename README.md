@@ -140,9 +140,11 @@
 | `GET` | `/api/orders/all` | **All orders** | `-` | **200** `OrderResponse[]` |
 | `GET` | `/api/orders/{id}` | **By ID** | `id: Guid` | **200** `OrderResponse` |
 | `POST` | `/api/orders/{cartId}` | **Create an order from the cart** | `-` | **201** `OrderResponse` |
-| `PATCH` | `/api/orders/{orderId}` | **Add item to cart** | `?status=statusNumber` |**200** `OrderResponse` |
+| `PATCH` | `/api/orders/{orderId}` | **Edit order status** | `?status=statusNumber` |**200** `OrderResponse` |
 | `PUT` | `/api/orders/cancel/{id}` | **Cancel order** | `id: Guid` | **200** |
 | `DELETE` | `/api/orders/{id}` | **Delete order** | `id: Guid` | **204** |
+
+### ℹ️ Order details
 
 **Order statuses**
 - **Pending** (1) 
@@ -152,5 +154,24 @@
 - **Completed** (5)
 - **Cancelled** (6)
 
-
+**OrderResponse**
+```json
+{
+  "id": "guid",
+  "orderNumber": "",
+  "createdDate": "0001-01-01T00:00:00",
+  "status": 0,
+  "items": [
+    {
+      "id": "guid",
+      "productId": "guid",
+      "productName": "",
+      "quantity": 0,
+      "unitPrice": 0.0,
+      "warehouseId": "guid"
+    }
+  ],
+  "totalPrice": 0.0
+}
+```
 
