@@ -158,14 +158,14 @@
 ```json
 {
   "id": "guid",
-  "orderNumber": "",
+  "orderNumber": "string",
   "createdDate": "0001-01-01T00:00:00",
   "status": 1,
   "items": [
     {
       "id": "guid",
       "productId": "guid",
-      "productName": "",
+      "productName": "string",
       "quantity": 0,
       "unitPrice": 0.0,
       "warehouseId": "guid"
@@ -174,4 +174,79 @@
   "totalPrice": 0.0
 }
 ```
+
+### 🏭 Warehouse 
+
+| Method | Endpoint | Description | Request model | Response |
+|:------|:---------|:------------|:--------------|:---------|
+| `GET` | `/api/warehouses` | **Pagination** | `?page=1&pageSize=10` |**200** `WarehouseShortResponse[]` |
+| `GET` | `/api/warehouses/{id}` | **By ID** | `id: Guid` | **200** `WarehouseResponse` |
+| `POST` | `/api/warehouses` | **Create new warehouse* | `WarehouseCreateRequest` | **201** `WarehouseResponse` |
+| `PATCH` | `/api/warehouses/{id}` | **Update** | `WarehouseUpdateRequest` |**200** `WarehouseResponse` |
+| `DELETE` | `/api/warehouses/{id}` | **Delete warehouse** | `id: Guid` | **204** |
+
+### ℹ️ Warehouse details
+
+**WarehouseCreateRequest**
+```json
+{
+  "name": "string",
+  "location": "string",
+  "adress": "string",
+  "phone": "string",
+  "isActive": true,
+  "deliveryCost": 0
+}
+```
+
+**WarehouseUpdateRequest**
+```json
+{
+  "name": "string",
+  "location": "string",
+  "adress": "string",
+  "phone": "string",
+  "isActive": true,
+  "deliveryCost": 0
+}
+```
+
+**WarehouseShortResponse**
+```json
+[
+  {
+    "id": "guid",
+    "name": "string",
+    "location": "string"
+  }
+]
+```
+
+**WarehouseResponse**
+```json
+{
+  "id": "guid",
+  "name": "string",
+  "location": "string",
+  "adress": "string",
+  "phone": "string",
+  "isActive": true,
+  "deliveryCost": 0.0,
+  "likesCount": 0,
+  "createdAt": "0001-01-01T00:00:00",
+  "products": [
+    {
+      "id": "guid",
+      "name": "string",
+      "description": "string",
+      "shortDescription": "string",
+      "price": 0.0,
+      "stock": 0,
+      "sku": "string"
+    }
+  ]
+}
+```
+
+
 
