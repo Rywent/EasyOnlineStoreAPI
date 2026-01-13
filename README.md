@@ -27,9 +27,9 @@
   "name": "string",
   "description": "string",
   "shortDescription": "string",
-  "oldPrice": 0,
+  "oldPrice": 0.0,
   "stock": 0,
-  "price": 0,
+  "price": 0.0,
   "images": [
     {
       "imageUrl": "string"
@@ -44,9 +44,9 @@
   "name": "string",
   "description": "string",
   "shortDescription": "string",
-  "oldPrice": 0,
+  "oldPrice": 0.0,
   "stock": 0,
-  "price": 0,
+  "price": 0.0,
   "warehouseId": "guid"
 }
 ```
@@ -57,11 +57,11 @@
   "name": "string",
   "description": "string",
   "shortDescription": "string",
-  "oldPrice": 0,
+  "oldPrice": 0.0,
   "stock": 0,
   "sku": "string",
-  "rating": 0,
-  "price": 0,
+  "rating": 0.0,
+  "price": 0.0,
   "createdAt": "string",
   "updatedAt": "string",
   "images": [
@@ -124,11 +124,11 @@
       "productId": "guid",
       "productName": "string",
       "quantity": 0,
-      "unitPrice": 0,
-      "subTotal": 0
+      "unitPrice": 0.0,
+      "subTotal": 0.0
     }
   ],
-  "totalPrice": 0
+  "totalPrice": 0.0
 }
 ```
 
@@ -160,7 +160,7 @@
   "id": "guid",
   "orderNumber": "",
   "createdDate": "0001-01-01T00:00:00",
-  "status": 0,
+  "status": 1,
   "items": [
     {
       "id": "guid",
