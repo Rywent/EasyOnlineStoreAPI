@@ -20,7 +20,7 @@
 | `POST` | `/api/products/{productId}/images` | **Add image** | `ProductImageRequest` | **201** `ProductImageResponse` |
 | `DELETE` | `/api/products/{productId}/images/{imageId}` | **Delete image** | `imageId: Guid` `productId: Guid` | **204** |
 
-### Product details
+### ℹ️ Product details
 **ProductCreateRequest**
 ```json
 {
@@ -96,11 +96,41 @@
 | `POST` | `/api/carts` | **Create an empty cart** | `-` | **201** `CartResponse` |
 | `POST` | `/api/carts/{cartId}/items` | **Add item to cart** | `cartId: Guid` `CartAddItemRequest` |**200** `CartResponse` |
 | `POST` | `/api/carts/{cartId}/items/clear` | **Clear cart** | `-` | **200** `CartResponse` |
-| `PATCH` | `/api/carts/{cartId}/items` | **Update item quantity** | `cartId: Guid` `CartItemRequest` | **200** `CartResponse` |
+| `PATCH` | `/api/carts/{cartId}/items` | **Update item quantity** | `cartId: Guid` `CartItemUpdateRequest` | **200** `CartResponse` |
 | `DELETE` | `/api/carts/{cartId}/items/{itemId}` | **Delete item from cart** | `cartId: Guid` `itemId: Guid` | **204** |
 | `DELETE` | `/api/carts/{id}` | **Delete cart** | `id: Guid` | **204** |
 
-
+### ℹ️ Cart details
+**CartAddItemRequest**
+```json
+{
+  "productId": "guid",
+  "quantity": 0
+}
+```
+**CartItemUpdateRequest**
+```json
+{
+  "productId": "guid",
+  "quantity": 0
+}
+```
+**CartResponse**
+```json
+{
+  "cartId": "guid",
+  "cartItems": [
+    {
+      "productId": "guid",
+      "productName": "string",
+      "quantity": 0,
+      "unitPrice": 0,
+      "subTotal": 0
+    }
+  ],
+  "totalPrice": 0
+}
+```
 
 
 
