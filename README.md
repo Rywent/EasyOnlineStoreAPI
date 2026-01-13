@@ -1,7 +1,7 @@
 # EasyOnlineStoreAPI
 
-## Endpoints
-### Products
+## 📍 Endpoints
+### 🛍️ Products
 
 | Method | Endpoint | Description | Request model | Response |
 |:------|:---------|:------------|:--------------|:---------|
@@ -86,6 +86,24 @@
   "imageUrl": "string"
 }
 ```
+
+### 🛒 Carts 
+
+| Method | Endpoint | Description | Request model | Response |
+|:------|:---------|:------------|:--------------|:---------|
+| `GET` | `/api/carts` | **Pagination** | `-` | **200** `CartResponse[]` |
+| `GET` | `/api/carts/{id}` | **By ID** | `id: Guid` | **200** `CartResponse` |
+| `POST` | `/api/carts` | **Create an empty cart** | `-` | **201** `CartResponse` |
+| `POST` | `/api/carts/{cartId}/items` | **Add item to cart** | `cartId: Guid` `CartAddItemRequest` |**200** `CartResponse` |
+| `POST` | `/api/carts/{cartId}/items/clear` | **Clear cart** | `-` | **200** `CartResponse` |
+| `PATCH` | `/api/carts/{cartId}/items` | **Update item quantity** | `cartId: Guid` `CartItemRequest` | **200** `CartResponse` |
+| `DELETE` | `/api/carts/{cartId}/items/{itemId}` | **Delete item from cart** | `cartId: Guid` `itemId: Guid` | **204** |
+| `DELETE` | `/api/carts/{id}` | **Delete cart** | `id: Guid` | **204** |
+
+
+
+
+
 
 
 
