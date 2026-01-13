@@ -5,11 +5,11 @@
 
 | Method | Endpoint | Description | Request model | Response |
 |:------|:---------|:------------|:--------------|:---------|
-| `GET` | `/api/products` | **Pagination** | `?page=1&pageSize=10` | `ProductResponse[]` |
-| `GET` | `/api/products/all` | **All products** | - | `ProductResponse[]` |
-| `GET` | `/api/products/{id}` | **By ID** | `id: Guid` | `ProductResponse` |
+| `GET` | `/api/products` | **Pagination** | `?page=1&pageSize=10` |**200** `ProductResponse[]` |
+| `GET` | `/api/products/all` | **All products** | - | **200** `ProductResponse[]` |
+| `GET` | `/api/products/{id}` | **By ID** | `id: Guid` |**200** `ProductResponse` |
 | `POST` | `/api/products` | **Create** | `ProductCreateRequest` | **201** `ProductResponse` |
-| `PATCH` | `/api/products/{id}` | **Update** | `ProductUpdateRequest` | `ProductResponse` |
+| `PATCH` | `/api/products/{id}` | **Update** | `ProductUpdateRequest` |**200** `ProductResponse` |
 | `DELETE` | `/api/products/{id}` | **Delete** | `id: Guid` | **204** |
 
 ### Product Images
