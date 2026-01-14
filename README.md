@@ -35,7 +35,9 @@
       "imageUrl": "string"
     }
   ],
+  "categoryId" : "guid",
   "warehouseId": "guid"
+
 }
 ```
 **ProductUpdateRequest**
@@ -47,6 +49,7 @@
   "oldPrice": 0.0,
   "stock": 0,
   "price": 0.0,
+  "categoryId" : "guid",
   "warehouseId": "guid"
 }
 ```
