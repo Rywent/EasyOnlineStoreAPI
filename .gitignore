@@ -417,6 +417,9 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+.idea/
+*.sln.iml
+
 
 # Secrets
 appsettings.json
