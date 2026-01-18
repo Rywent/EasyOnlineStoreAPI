@@ -5,16 +5,16 @@ using EasyOnlineStore.Application.Exceptions;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Domain.Models.Carts;
 using EasyOnlineStore.Domain.Models.Products;
-using EasyOnlineStore.Persistence.Repositories;
+using EasyOnlineStore.Domain.Interfaces;
 
 namespace EasyOnlineStore.Application.Services;
 
 public class CartService : ICartService
 {
-    private readonly ProductRepository _productRepository;
-    private readonly CartRepository _cartRepositoty;
+    private readonly IProductRepository _productRepository;
+    private readonly ICartRepository _cartRepositoty;
     private readonly IMapper _mapper;
-    public CartService(CartRepository cartRepository, ProductRepository productRepository, IMapper mapper)
+    public CartService(ICartRepository cartRepository, IProductRepository productRepository, IMapper mapper)
     {
         _productRepository = productRepository;
         _cartRepositoty = cartRepository;
@@ -52,13 +52,13 @@ public class CartService : ICartService
         return _mapper.Map<CartResponse>(cart);
         
     }
-    public async Task<CartResponse> RemoveItemFromCartAsync(Guid cartId, Guid itemId)
+    public async Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid itemId)
     {
         var cart = await _cartRepositoty.RemoveItemFromCartAsync(cartId, itemId);
-        if (cart == null)
+        if (cart == false)
             throw new NotFoundException(nameof(Cart), cartId);
 
-        return _mapper.Map<CartResponse>(cart);
+        return true;
     }
 
     public async Task<CartResponse> UpdateItemInCartAsync(Guid cartId, CartItemUpdateRequest request)

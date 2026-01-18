@@ -14,6 +14,12 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.Id)
             .HasDefaultValueSql("gen_random_uuid()");
 
+        builder.HasOne(p => p.Category)
+            .WithMany()
+            .HasForeignKey(p => p.CategoryId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder
             .HasOne(p => p.Warehouse)
             .WithMany(p => p.Products)

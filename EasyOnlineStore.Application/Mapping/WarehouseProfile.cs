@@ -9,6 +9,7 @@ public class WarehouseProfile : Profile
 {
     public WarehouseProfile()
     {
+        CreateMap<Warehouse, WarehouseShortResponse>();
         CreateMap<Warehouse, WarehouseResponse>()
             .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products));
 

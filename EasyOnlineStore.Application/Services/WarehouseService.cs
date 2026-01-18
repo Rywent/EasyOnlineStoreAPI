@@ -3,7 +3,7 @@ using EasyOnlineStore.Application.Exceptions;
 using EasyOnlineStore.Application.DTOs.Requests.Warehouse;
 using EasyOnlineStore.Application.DTOs.Responses.Warehouse;
 using EasyOnlineStore.Application.Interfaces;
-using EasyOnlineStore.Persistence.Repositories;
+using EasyOnlineStore.Domain.Interfaces;
 using EasyOnlineStore.Domain.Models.Warehouses;
 
 
@@ -11,21 +11,21 @@ namespace EasyOnlineStore.Application.Services;
 
 public class WarehouseService : IWarehouseService
 {
-    private readonly WarehouseRepository _warehouseRepository;
+    private readonly IWarehouseRepository _warehouseRepository;
     private readonly IMapper _mapper;
-    public WarehouseService(WarehouseRepository warehouseRepository, IMapper mapper)
+    public WarehouseService(IWarehouseRepository warehouseRepository, IMapper mapper)
     {
         _warehouseRepository = warehouseRepository;
         _mapper = mapper;
     }
-    public async Task<List<WarehouseResponse>> GetAllAsync(int page, int pageSize)
+    public async Task<List<WarehouseShortResponse>> GetAllAsync(int page, int pageSize)
     {
         var warehouses = await _warehouseRepository.GetAllAsync();
         var paged = warehouses
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToList();
-        return _mapper.Map<List<WarehouseResponse>>(paged);
+        return _mapper.Map<List<WarehouseShortResponse>>(paged);
     }
 
     public async Task<WarehouseResponse> GetByIdAsync(Guid id)

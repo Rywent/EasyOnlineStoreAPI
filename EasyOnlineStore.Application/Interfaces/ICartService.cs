@@ -9,7 +9,7 @@ public interface ICartService
     Task<CartResponse> GetByIdAsync(Guid id);
     Task<CartResponse> CreateCartAsync();
     Task<CartResponse> AddItemToCartAsync(Guid cartId, CartAddItemRequest request);
-    Task<CartResponse> RemoveItemFromCartAsync(Guid cartId, Guid itemId);
+    Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid itemId);
     Task<CartResponse> UpdateItemInCartAsync(Guid cartId, CartItemUpdateRequest request);
     Task<CartResponse> ClearCartAsync(Guid cartId);
     Task<bool> DeleteCartAsync(Guid cartId);

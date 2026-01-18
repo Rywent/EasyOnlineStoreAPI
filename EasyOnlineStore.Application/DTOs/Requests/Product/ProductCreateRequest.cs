@@ -1,6 +1,4 @@
-﻿using EasyOnlineStore.Domain.Models.Products;
-
-namespace EasyOnlineStore.Application.DTOs.Requests.Product;
+﻿namespace EasyOnlineStore.Application.DTOs.Requests.Product;
 
 public class ProductCreateRequest
 {
@@ -11,5 +9,6 @@ public class ProductCreateRequest
     public int Stock { get; set; } = 0;
     public decimal Price { get; set; } = 0;
     public List<ProductImageRequest> Images { get; set; } = [];
+    public Guid CategoryId { get; set; }
     public Guid WarehouseId { get; set; }
 }

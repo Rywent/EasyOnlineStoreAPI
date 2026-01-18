@@ -3,8 +3,7 @@ using EasyOnlineStore.Application.DTOs.Responses.Order;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Application.Exceptions;
 using EasyOnlineStore.Domain.Enums;
-using EasyOnlineStore.Domain.Models;
-using EasyOnlineStore.Persistence.Repositories;
+using EasyOnlineStore.Domain.Interfaces;
 using EasyOnlineStore.Domain.Models.Products;
 using EasyOnlineStore.Domain.Models.Carts;
 using EasyOnlineStore.Domain.Models.Orders;
@@ -14,12 +13,12 @@ namespace EasyOnlineStore.Application.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly ProductRepository _productRepository;
-        private readonly CartRepository _cartRepository;
-        private readonly OrderRepository _orderRepository;
+        private readonly IProductRepository _productRepository;
+        private readonly ICartRepository _cartRepository;
+        private readonly IOrderRepository _orderRepository;
         private readonly IMapper _mapper;
 
-        public OrderService(OrderRepository orderRepository, ProductRepository productRepository,CartRepository cartRepository, IMapper mapper)
+        public OrderService(IOrderRepository orderRepository, IProductRepository productRepository, ICartRepository cartRepository, IMapper mapper)
         {
             _productRepository = productRepository;
             _cartRepository = cartRepository;

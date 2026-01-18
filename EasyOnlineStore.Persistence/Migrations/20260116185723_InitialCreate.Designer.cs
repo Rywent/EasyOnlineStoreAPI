@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace EasyOnlineStore.Persistence.Migrations
 {
     [DbContext(typeof(EasyOnlineStoreDbContext))]
-    [Migration("20260110092126_InitialCreate")]
+    [Migration("20260116185723_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -25,7 +25,7 @@ namespace EasyOnlineStore.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Cart", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Carts.Cart", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -37,7 +37,7 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.ToTable("Carts");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.CartItem", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Carts.CartItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,7 +62,27 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.ToTable("CartItems");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Order", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Categories.Category", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("CategoryCode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("CategoryName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Categories");
+                });
+
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Orders.Order", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -84,7 +104,7 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.ToTable("Orders");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.OrderItem", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Orders.OrderItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -117,39 +137,103 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Product", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Products.Product", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal?>("OldPrice")
+                        .HasColumnType("numeric");
+
                     b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
-                    b.Property<int>("Quantity")
+                    b.Property<decimal>("Rating")
+                        .HasColumnType("numeric");
+
+                    b.Property<string>("SKU")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ShortDescription")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Stock")
                         .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("WarehouseId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CategoryId");
+
                     b.HasIndex("WarehouseId");
 
                     b.ToTable("Products");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Warehouse", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Products.ProductImage", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("ProductId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("ProductImage");
+                });
+
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Warehouses.Warehouse", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
+
+                    b.Property<string>("Adress")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("DeliveryCost")
+                        .HasColumnType("numeric");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("LikesCount")
+                        .HasColumnType("integer");
 
                     b.Property<string>("Location")
                         .IsRequired()
@@ -160,20 +244,24 @@ namespace EasyOnlineStore.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.CartItem", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Carts.CartItem", b =>
                 {
-                    b.HasOne("EasyOnlineStore.Domain.Models.Cart", "Cart")
+                    b.HasOne("EasyOnlineStore.Domain.Models.Carts.Cart", "Cart")
                         .WithMany("Items")
                         .HasForeignKey("CartId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EasyOnlineStore.Domain.Models.Product", "Product")
+                    b.HasOne("EasyOnlineStore.Domain.Models.Products.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -184,21 +272,21 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.OrderItem", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Orders.OrderItem", b =>
                 {
-                    b.HasOne("EasyOnlineStore.Domain.Models.Order", "Order")
+                    b.HasOne("EasyOnlineStore.Domain.Models.Orders.Order", "Order")
                         .WithMany("Items")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("EasyOnlineStore.Domain.Models.Product", "Product")
+                    b.HasOne("EasyOnlineStore.Domain.Models.Products.Product", "Product")
                         .WithMany()
                         .HasForeignKey("ProductId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("EasyOnlineStore.Domain.Models.Warehouse", "Warehouse")
+                    b.HasOne("EasyOnlineStore.Domain.Models.Warehouses.Warehouse", "Warehouse")
                         .WithMany()
                         .HasForeignKey("WarehouseId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -211,28 +299,52 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Product", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Products.Product", b =>
                 {
-                    b.HasOne("EasyOnlineStore.Domain.Models.Warehouse", "Warehouse")
-                        .WithMany("Products")
-                        .HasForeignKey("WarehouseId")
+                    b.HasOne("EasyOnlineStore.Domain.Models.Categories.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("EasyOnlineStore.Domain.Models.Warehouses.Warehouse", "Warehouse")
+                        .WithMany("Products")
+                        .HasForeignKey("WarehouseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
 
                     b.Navigation("Warehouse");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Cart", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Products.ProductImage", b =>
+                {
+                    b.HasOne("EasyOnlineStore.Domain.Models.Products.Product", "Product")
+                        .WithMany("Images")
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Carts.Cart", b =>
                 {
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Order", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Orders.Order", b =>
                 {
                     b.Navigation("Items");
                 });
 
-            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Warehouse", b =>
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Products.Product", b =>
+                {
+                    b.Navigation("Images");
+                });
+
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Warehouses.Warehouse", b =>
                 {
                     b.Navigation("Products");
                 });

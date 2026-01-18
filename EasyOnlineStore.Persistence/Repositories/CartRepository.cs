@@ -63,7 +63,7 @@ public class CartRepository : ICartRepository
         await _dbContext.SaveChangesAsync();
         return cart;
     }
-    public async Task<Cart?> RemoveItemFromCartAsync(Guid cartId, Guid productId)
+    public async Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid productId)
     {
         var cart = await _dbContext.Carts
             .Include(c => c.Items)
@@ -71,18 +71,18 @@ public class CartRepository : ICartRepository
             .FirstOrDefaultAsync(c => c.Id == cartId);
 
         if (cart == null)
-            return null;
+            return false;
 
         var existingItem = cart.Items
             .FirstOrDefault(i => i.ProductId == productId);
 
         if (existingItem == null)
-            return null;
+            return false;
 
         cart.Items.Remove(existingItem);
         await _dbContext.SaveChangesAsync();
 
-        return cart;
+        return true;
     }
     public async Task<Cart?> ClearCartAsync(Guid cartId)
     {

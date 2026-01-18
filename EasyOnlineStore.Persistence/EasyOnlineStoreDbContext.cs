@@ -8,6 +8,7 @@ using EasyOnlineStore.Persistence.Configurations.Orders;
 using EasyOnlineStore.Persistence.Configurations.Warehouses;
 
 using Microsoft.EntityFrameworkCore;
+using EasyOnlineStore.Domain.Models.Categories;
 
 namespace EasyOnlineStore.Persistence;
 
@@ -22,6 +23,7 @@ public class EasyOnlineStoreDbContext : DbContext
     public DbSet<CartItem> CartItems { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<Category> Categories { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +33,7 @@ public class EasyOnlineStoreDbContext : DbContext
         modelBuilder.ApplyConfiguration(new CartItemConfiguration());
         modelBuilder.ApplyConfiguration(new OrderConfiguration());
         modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
+        modelBuilder.ApplyConfiguration(new CategoryConfiguration());
 
 
         base.OnModelCreating(modelBuilder);

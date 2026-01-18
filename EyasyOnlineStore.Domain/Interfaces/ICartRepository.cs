@@ -7,7 +7,7 @@ public interface ICartRepository
     Task<List<Cart>> GetAllAsync();
     Task<Cart?> GetByIdAsync(Guid id);
     Task<Cart?> AddItemToCartAsync(Guid cartId, CartItem item);
-    Task<Cart?> RemoveItemFromCartAsync(Guid cartId, Guid itemId);
+    Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid itemId);
     Task<Cart?> ClearCartAsync(Guid cartId);
     Task<Cart> CreateAsync(Cart cart);
     Task<bool> RemoveAsync(Guid id);

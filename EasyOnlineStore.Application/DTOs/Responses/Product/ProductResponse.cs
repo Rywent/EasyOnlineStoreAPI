@@ -16,5 +16,4 @@ public class ProductResponse
 
     public List<ProductImageResponse> Images { get; set; } = [];
     public Guid WarehouseId { get; set; }
-    public string WarehouseName { get; set; } = string.Empty;
 }

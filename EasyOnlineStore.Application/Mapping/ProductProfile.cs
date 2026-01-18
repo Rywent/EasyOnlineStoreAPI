@@ -11,10 +11,21 @@ public class ProductProfile : Profile
     public ProductProfile()
     {
         // read
-        CreateMap<Product, ProductResponse>();
+        CreateMap<Product, ProductResponse>()
+            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
+
         // create
-        CreateMap<ProductCreateRequest, Product>();
-        // update
+        CreateMap<ProductCreateRequest, Product>()
+            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
+
+        CreateMap<ProductImage, ProductImageResponse>();
+
+        CreateMap<ProductImageRequest, ProductImage>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.ProductId, opt => opt.Ignore())
+            .ForMember(dest => dest.Product, opt => opt.Ignore());
+
+        // update  
         CreateMap<ProductUpdateRequest, Product>();
     }
 }

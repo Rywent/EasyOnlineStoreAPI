@@ -5,7 +5,7 @@ namespace EasyOnlineStore.Application.Interfaces;
 
 public interface IWarehouseService
 {
-    Task<List<WarehouseResponse>> GetAllAsync(int page, int pageSize);
+    Task<List<WarehouseShortResponse>> GetAllAsync(int page, int pageSize);
     Task<WarehouseResponse> GetByIdAsync(Guid id);
     
     Task<WarehouseResponse> CreateAsync(WarehouseCreateRequest request);

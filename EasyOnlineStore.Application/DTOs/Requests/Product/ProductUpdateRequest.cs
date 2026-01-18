@@ -8,5 +8,6 @@ public class ProductUpdateRequest
     public decimal? OldPrice { get; set; }
     public int? Stock { get; set; }
     public decimal? Price { get; set; }
+    public Guid? CategoryId { get; set; }
     public Guid? WarehouseId { get; set; }
 }

@@ -1,6 +1,9 @@
 ﻿using EasyOnlineStore.Domain.Models.Warehouses;
+using EasyOnlineStore.Domain.Models.Categories;
+
 
 namespace EasyOnlineStore.Domain.Models.Products;
+
 
 public class Product
 {
@@ -17,6 +20,9 @@ public class Product
     public DateTime? UpdatedAt { get; set; }
 
     public List<ProductImage> Images { get; set; } = [];
+ 
+    public Guid CategoryId { get; set; }
+    public Category Category { get; set; } = null!;
     public Guid WarehouseId { get; set; }
     public Warehouse Warehouse { get; set; } = null!;
 }

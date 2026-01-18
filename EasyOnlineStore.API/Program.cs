@@ -2,6 +2,7 @@ using EasyOnlineStore.Application.Exceptions;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Application.Mapping;
 using EasyOnlineStore.Application.Services;
+using EasyOnlineStore.Domain.Interfaces;
 using EasyOnlineStore.Persistence;
 using EasyOnlineStore.Persistence.Repositories;
 using Microsoft.AspNetCore.Diagnostics;
@@ -20,10 +21,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly(),typeof(ProductProfile).Assembly);
-builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly(), typeof(CartProfile).Assembly);
-builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly(), typeof(OrderProfile).Assembly);
-builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly(), typeof(WarehouseProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(ProductProfile).Assembly,
+    typeof(CartProfile).Assembly,
+    typeof(OrderProfile).Assembly,
+    typeof(WarehouseProfile).Assembly,
+    typeof(CategoryProfile).Assembly);
+
 
 builder.Services.AddDbContext<EasyOnlineStoreDbContext>(
     options =>
@@ -31,17 +34,27 @@ builder.Services.AddDbContext<EasyOnlineStoreDbContext>(
         options.UseNpgsql(configuration.GetConnectionString(nameof(EasyOnlineStoreDbContext)));
     });
 
+builder.Services.AddScoped<IProductRepository, ProductRepository>(
+    provider => new ProductRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>(
+    provider => new CategoryRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+builder.Services.AddScoped<ICartRepository, CartRepository>(
+    provider => new CartRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+builder.Services.AddScoped<IOrderRepository, OrderRepository>(
+    provider => new OrderRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>(
+    provider => new WarehouseRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+
 builder.Services.AddScoped<IProductService, ProductsService>();
-builder.Services.AddScoped<ProductRepository>(provider => new ProductRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
 builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<CartRepository>(provider => new CartRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
 builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<OrderRepository>(provider => new OrderRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
-builder.Services.AddScoped<WarehouseRepository>(provider => new WarehouseRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
