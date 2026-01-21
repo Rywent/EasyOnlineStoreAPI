@@ -181,7 +181,7 @@
 |:------|:---------|:------------|:--------------|:---------|
 | `GET` | `/api/warehouses` | **Pagination** | `?page=1&pageSize=10` |**200** `WarehouseShortResponse[]` |
 | `GET` | `/api/warehouses/{id}` | **By ID** | `id: Guid` | **200** `WarehouseResponse` |
-| `POST` | `/api/warehouses` | **Create new warehouse* | `WarehouseCreateRequest` | **201** `WarehouseResponse` |
+| `POST` | `/api/warehouses` | **Create new warehouse** | `WarehouseCreateRequest` | **201** `WarehouseResponse` |
 | `PATCH` | `/api/warehouses/{id}` | **Update** | `WarehouseUpdateRequest` |**200** `WarehouseResponse` |
 | `DELETE` | `/api/warehouses/{id}` | **Delete warehouse** | `id: Guid` | **204** |
 
@@ -247,6 +247,34 @@
   ]
 }
 ```
+
+### 🏷️ Categories
+
+| Method | Endpoint | Description | Request model | Response |
+|:------|:---------|:------------|:--------------|:---------|
+| `GET` | `/api/categories` | **Pagination** | `?page=1&pageSize=10` |**200** `CategoryResponse[]` |
+| `GET` | `/api/categories/{id}` | **By ID** | `id: Guid` | **200** `CategoryResponse` |
+| `POST` | `/api/categories` | **Create new category** | `CategoryCreateRequest` | **201** `CategoryResponse` |
+| `DELETE` | `/api/categories/{id}` | **Delete category** | `id: Guid` | **204** |
+
+### ℹ️ Category details
+
+**CategoryCreateRequest**
+```json
+{
+  "name": "string"
+}
+```
+**CategoryResponse**
+```json
+{
+  "id": "guid",
+  "categoryName": "string",
+  "categoryCode": "string"
+}
+```
+
+
 
 
 
