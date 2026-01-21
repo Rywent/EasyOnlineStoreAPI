@@ -16,9 +16,12 @@ public class CategoriesController : ControllerBase
 
     // GET api/categories
     [HttpGet]
-    public async Task<ActionResult<List<CategoryResponse>>> GetAll()
+    public async Task<ActionResult<List<CategoryResponse>>> GetAll([FromQuery] int page=1, [FromQuery] int pageSize = 10)
     {
-        var categories = await _categoryService.GetAllAsync(); 
+        if (pageSize <= 0) pageSize = 10;
+        if (page < 1) page = 1;
+        
+        var categories = await _categoryService.GetAllAsync(page, pageSize); 
         return Ok(categories);
     }
 

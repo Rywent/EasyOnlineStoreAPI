@@ -17,9 +17,9 @@ public class CategoryService : ICategoryService
         _mapper = mapper;
     }
 
-    public async Task<List<CategoryResponse>> GetAllAsync()
+    public async Task<List<CategoryResponse>> GetAllAsync(int page, int pageSize)
     {
-        var categories = await _categoryRepository.GetAllAsync();
+        var categories = await _categoryRepository.GetAllAsync(page, pageSize);
         return _mapper.Map<List<CategoryResponse>>(categories ?? []);
     }
 

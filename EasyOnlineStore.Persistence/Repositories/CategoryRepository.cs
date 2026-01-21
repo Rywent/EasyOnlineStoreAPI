@@ -13,10 +13,12 @@ public class CategoryRepository : ICategoryRepository
         _dbContext = dbContext;
     }
 
-    public async Task<List<Category>> GetAllAsync()
+    public async Task<List<Category>> GetAllAsync(int page, int pageSize)
     {
         return await _dbContext.Categories
             .AsNoTracking()
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
     }
 

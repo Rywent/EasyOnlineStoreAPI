@@ -4,7 +4,7 @@ namespace EasyOnlineStore.Application.Interfaces;
 
 public interface ICategoryService
 {
-    Task<List<CategoryResponse>> GetAllAsync();
+    Task<List<CategoryResponse>> GetAllAsync(int page, int pageSize);
     Task<CategoryResponse> GetByIdAsync(Guid id);
     Task<string> GetCodeByIdAsync(Guid id);
 
