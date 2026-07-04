@@ -8,19 +8,13 @@ namespace EasyOnlineStore.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController : ControllerBase
+public class ProductsController(IProductService productService) : ControllerBase
 {
-    private readonly IProductService _productService;
-    public ProductsController(IProductService productService)
-    {
-        _productService = productService;
-    }
-
     // GET: api/products/all
     [HttpGet("all")]
     public async Task<ActionResult<List<ProductResponse>>> GetAll()
     {
-        var products = await _productService.GetAllAsync();
+        var products = await productService.GetAllAsync();
         return Ok(products);
     }
 
@@ -28,7 +22,7 @@ public class ProductsController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ProductResponse>> GetById(Guid id)
     {
-        var product = await _productService.GetByIdAsync(id);
+        var product = await productService.GetByIdAsync(id);
         return Ok(product);
     }
 
@@ -39,7 +33,7 @@ public class ProductsController : ControllerBase
         if (pageSize <= 0) pageSize = 10;
         if (page < 1) page = 1;
 
-        var products = await _productService.GetByPageAsync(page, pageSize);
+        var products = await productService.GetByPageAsync(page, pageSize);
         return Ok(products);
     }
 
@@ -47,7 +41,7 @@ public class ProductsController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ProductResponse>> Create(ProductCreateRequest request)
     {
-        var createdProduct = await _productService.CreateAsync(request);
+        var createdProduct = await productService.CreateAsync(request);
         return CreatedAtAction(nameof(GetById), new { id = createdProduct.Id }, createdProduct);
     }
 
@@ -55,7 +49,7 @@ public class ProductsController : ControllerBase
     [HttpPatch("{id:guid}")]
     public async Task<ActionResult<ProductResponse>> Update(Guid id, ProductUpdateRequest request)
     {
-        var updatedProduct = await _productService.UpdateAsync(id, request);
+        var updatedProduct = await productService.UpdateAsync(id, request);
         return Ok(updatedProduct);
     }
 
@@ -63,7 +57,7 @@ public class ProductsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var result = await _productService.DeleteAsync(id);
+        var result = await productService.DeleteAsync(id);
         return result ? NoContent() : NotFound();
     }
 }

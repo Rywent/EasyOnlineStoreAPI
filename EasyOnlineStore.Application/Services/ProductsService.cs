@@ -55,7 +55,7 @@ public class ProductsService : IProductService
 
         var tempProduct = await _productRepository.CreateAsync(productEntity);
 
-        productEntity.SKU = GenerateSKU(tempProduct.Id, categoryCode);
+        productEntity.Sku = GenerateSku(tempProduct.Id, categoryCode);
         productEntity.Rating = 0;
         productEntity.CreatedAt = DateTime.UtcNow;
         productEntity.UpdatedAt = DateTime.UtcNow;
@@ -85,7 +85,7 @@ public class ProductsService : IProductService
         return await _productRepository.RemoveAsync(id);
     }
 
-    private string GenerateSKU(Guid productId, string categoryCode)
+    private string GenerateSku(Guid productId, string categoryCode)
     {
         string guidHex = productId.ToString("N");
         string first6 = guidHex.Substring(0, 6).ToUpper();

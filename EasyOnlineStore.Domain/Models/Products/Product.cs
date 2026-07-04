@@ -13,7 +13,7 @@ public class Product
     public string? ShortDescription {  get; set; }
     public decimal? OldPrice { get; set; }
     public int Stock { get; set; } = 0;
-    public string SKU { get; set; } = string.Empty;
+    public string Sku { get; set; } = string.Empty;
     public decimal Rating { get; set; }
     public decimal Price { get; set; } = 0;
     public DateTime CreatedAt { get; set; }

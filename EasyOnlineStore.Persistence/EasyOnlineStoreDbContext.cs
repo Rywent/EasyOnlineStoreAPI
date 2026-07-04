@@ -9,10 +9,14 @@ using EasyOnlineStore.Persistence.Configurations.Warehouses;
 
 using Microsoft.EntityFrameworkCore;
 using EasyOnlineStore.Domain.Models.Categories;
+using EasyOnlineStore.Domain.Models.Users;
+using EasyOnlineStore.Persistence.Configurations.Users;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace EasyOnlineStore.Persistence;
 
-public class EasyOnlineStoreDbContext : DbContext
+public class EasyOnlineStoreDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
 {
     public EasyOnlineStoreDbContext(DbContextOptions<EasyOnlineStoreDbContext> options)
         : base(options) { }
@@ -27,6 +31,8 @@ public class EasyOnlineStoreDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+        
         modelBuilder.ApplyConfiguration(new WarehouseConfiguration());
         modelBuilder.ApplyConfiguration(new ProductConfiguration());
         modelBuilder.ApplyConfiguration(new CartConfiguration());
@@ -34,9 +40,10 @@ public class EasyOnlineStoreDbContext : DbContext
         modelBuilder.ApplyConfiguration(new OrderConfiguration());
         modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryConfiguration());
+        modelBuilder.ApplyConfiguration(new UserConfiguration());
+        
 
-
-        base.OnModelCreating(modelBuilder);
+        
     }
 
 

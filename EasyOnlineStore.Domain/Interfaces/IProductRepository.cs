@@ -11,6 +11,6 @@ public interface IProductRepository
     public Task<List<Product>> GetByPageAsync(int page, int pageSize);
 
     public Task<Product> CreateAsync(Product product);
-    public Task<bool> RemoveAsync(Guid id);
     public Task<Product> UpdateAsync(Product product);   
+    public Task<bool> RemoveAsync(Guid id);
 }

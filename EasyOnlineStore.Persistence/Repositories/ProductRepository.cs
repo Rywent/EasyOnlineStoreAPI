@@ -4,17 +4,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EasyOnlineStore.Persistence.Repositories;
 
-public class ProductRepository : IProductRepository
+public class ProductRepository(EasyOnlineStoreDbContext dbContext) : IProductRepository
 {
-    private readonly EasyOnlineStoreDbContext _dbContext;
-    public ProductRepository(EasyOnlineStoreDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task<List<Product>> GetAllAsync()
     {
-        return await _dbContext.Products
+        return await dbContext.Products
             .AsNoTracking()
             .Include(p => p.Warehouse)
             .Include(p => p.Images)
@@ -23,7 +17,7 @@ public class ProductRepository : IProductRepository
     }
     public async Task<Product?> GetByIdAsync(Guid id)
     {
-        return await _dbContext.Products
+        return await dbContext.Products
             .Include(p => p.Warehouse)
             .Include(p => p.Images)
             .FirstOrDefaultAsync(p => p.Id == id);
@@ -31,13 +25,13 @@ public class ProductRepository : IProductRepository
     }
     public async Task<List<Product>> GetByIdsAsync(Guid[] ids)
     {
-        return await _dbContext.Products
+        return await dbContext.Products
             .Where(p => ids.Contains(p.Id))
             .ToListAsync();
     }
     public async Task<List<Product>> GetByFilterAsync(string name, decimal price)
     {
-        var query = _dbContext.Products.AsNoTracking();
+        var query = dbContext.Products.AsNoTracking();
 
         if (!string.IsNullOrEmpty(name))
         {
@@ -52,7 +46,7 @@ public class ProductRepository : IProductRepository
     }
     public async Task<List<Product>> GetByPageAsync(int page, int pageSize)
     {
-        return await _dbContext.Products
+        return await dbContext.Products
             .AsNoTracking()
             .Include(p => p.Warehouse)
             .Include (p => p.Images)
@@ -65,21 +59,21 @@ public class ProductRepository : IProductRepository
 
     public async Task<Product> CreateAsync(Product product)
     {
-        await _dbContext.Products.AddAsync(product);
-        await _dbContext.SaveChangesAsync();
+        await dbContext.Products.AddAsync(product);
+        await dbContext.SaveChangesAsync();
         return product;
     }
 
     public async Task<Product> UpdateAsync(Product product)
     {
-        _dbContext.Products.Update(product);
-        await _dbContext.SaveChangesAsync();
+        dbContext.Products.Update(product);
+        await dbContext.SaveChangesAsync();
         return product;
     }
 
     public async Task<bool> RemoveAsync(Guid id)
     {
-        var result = await _dbContext.Products
+        var result = await dbContext.Products
             .Where(p => p.Id == id)
             .ExecuteDeleteAsync();
 
