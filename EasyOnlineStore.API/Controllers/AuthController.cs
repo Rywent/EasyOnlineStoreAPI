@@ -10,13 +10,12 @@ namespace EasyOnlineStore.API.Controllers;
 [Route("api/[controller]")]
 public class AuthController(IUserService userService) : ControllerBase
 {
-    private readonly IUserService _userService = userService;
     
     // POST api/auth/register
     [HttpPost("register")]
     public async Task<ActionResult<UserResponse>> Register(RegisterRequest request)
     {
-        var result = await _userService.RegisterAsync(request);
+        var result = await userService.RegisterAsync(request);
         return Ok(result);
     }
 
@@ -24,7 +23,7 @@ public class AuthController(IUserService userService) : ControllerBase
     [HttpPost("login")]
     public async Task<ActionResult<string>> Login(LoginRequest request)
     {
-        var token = await _userService.LoginAsync(request);
-        return Ok(new { Token = token });
+        var result = await userService.LoginAsync(request);
+        return Ok(result);
     }
 }

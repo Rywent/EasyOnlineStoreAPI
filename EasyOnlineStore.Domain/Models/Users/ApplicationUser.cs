@@ -13,7 +13,7 @@ public class ApplicationUser : IdentityUser<Guid>
     public string? City { get; set; }
     public string? Country { get; set; }
     
-    public UserRole Role { get; set; } = UserRole.Seller;
+    public ICollection<Role> Roles { get; set; } = [];
 
     public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
 

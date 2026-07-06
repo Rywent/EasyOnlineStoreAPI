@@ -1,20 +1,15 @@
-using System.ComponentModel.DataAnnotations;
-using System.Text;
-using EasyOnlineStore.Application.Exceptions;
+using EasyOnlineStore.API.Extensions;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Application.Mapping;
 using EasyOnlineStore.Application.Services;
 using EasyOnlineStore.Domain.Interfaces;
 using EasyOnlineStore.Persistence;
 using EasyOnlineStore.Persistence.Repositories;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EasyOnlineStore.Domain.Models.Users;
 using EasyOnlineStore.Infrastructure.Jwt;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.IdentityModel.Tokens;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,7 +33,7 @@ builder.Services.AddAutoMapper(
     typeof(CategoryProfile).Assembly);
 
 
-// data base contextt
+// data base context
 builder.Services.AddDbContext<EasyOnlineStoreDbContext>(
     options =>
     {
@@ -59,25 +54,8 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSett
 builder.Services.AddScoped<JwtProvider>(); 
 
 // authentication
-builder.Services.AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-    })
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidIssuer = jwtSettings.Issuer,
-            ValidateAudience = true,
-            ValidAudience = jwtSettings.Audience,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSettings.SecretKey))
-        };
-    });
+ApiExtensions.AddApiAuthentication(builder.Services, jwtSettings);
+ApiExtensions.AddApiAuthorization(builder.Services);
 
 // registration repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>(
@@ -107,7 +85,7 @@ builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 
-// enable custom exceptions
+// disable automatic ModelState validation
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.SuppressModelStateInvalidFilter = true;
@@ -124,36 +102,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// global custom esceptions
-app.UseExceptionHandler(errorApp =>
-{
-    errorApp.Run(async context =>
-    {
-        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-        var exception = exceptionHandlerPathFeature?.Error;
-
-        var problemDetails = new ProblemDetails
-        {
-            Title = exception?.GetType().Name ?? "Internal Server Error",
-            Detail = exception?.Message,
-            Status = exception switch
-            {
-                NotFoundException => StatusCodes.Status404NotFound,
-                InsufficientStockException => StatusCodes.Status400BadRequest,
-                ValidationException => StatusCodes.Status400BadRequest,
-                ConflictException => StatusCodes.Status409Conflict,
-                UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
-                _ => StatusCodes.Status500InternalServerError
-            },
-            Instance = exceptionHandlerPathFeature?.Path,
-            Type = exception?.GetType().FullName
-        };
-
-        context.Response.StatusCode = problemDetails.Status.Value;
-        context.Response.ContentType = "application/problem+json";
-        await context.Response.WriteAsJsonAsync(problemDetails);
-    });
-});
+// global custom exceptions
+app.UseGlobalExceptionHandler();
 
 // routing
 app.UseRouting();
