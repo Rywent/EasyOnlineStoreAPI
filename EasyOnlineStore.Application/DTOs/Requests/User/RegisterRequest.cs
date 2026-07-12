@@ -7,5 +7,5 @@ public class RegisterRequest
     public string LastName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
     public string? Country { get; set; }
-    public string Role { get; set; } = string.Empty;
+    public List<string> Roles { get; set; } = new();
 }

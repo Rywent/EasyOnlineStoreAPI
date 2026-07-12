@@ -9,9 +9,9 @@ using EasyOnlineStore.Domain.Models.Carts;
 using EasyOnlineStore.Domain.Models.Orders;
 
 
-namespace EasyOnlineStore.Application.Services
-{
-    public class OrderService : IOrderService
+namespace EasyOnlineStore.Application.Services;
+
+public class OrderService : IOrderService
     {
         private readonly IProductRepository _productRepository;
         private readonly ICartRepository _cartRepository;
@@ -31,14 +31,20 @@ namespace EasyOnlineStore.Application.Services
             return _mapper.Map<List<OrderResponse>>(orders ?? []);
         }
 
-        public async Task<OrderResponse> GetByIdAsync(Guid id)
+        public async Task<OrderResponse> GetByUserIdAsync(Guid userId, Guid orderId)
         {
-            var order = await _orderRepository.GetByIdAsync(id);
+            var order = await _orderRepository.GetByUserIdAsync(userId, orderId);
             if(order == null) 
-                throw new NotFoundException(nameof(Order), id);
+                throw new NotFoundException(nameof(Order), orderId);
 
             return _mapper.Map<OrderResponse>(order);
 
+        }
+
+        public async Task<List<OrderResponse>> GetAllByUserIdAsync(Guid userId)
+        {
+            var orders = await _orderRepository.GetOrdersByUserIdAsync(userId);
+            return _mapper.Map<List<OrderResponse>>(orders);
         }
 
         public async Task<List<OrderResponse>> GetByPageAsync(int page, int pageSize)
@@ -46,11 +52,12 @@ namespace EasyOnlineStore.Application.Services
             var orders = await _orderRepository.GetByPageAsync(page, pageSize);
             return _mapper.Map<List<OrderResponse>>(orders ?? []);
         }
-        public async Task<OrderResponse> CreateOrderAsync(Guid cartId)
+        public async Task<OrderResponse> CreateOrderByUserIdAsync(Guid userId)
         {
-            var cart = await _cartRepository.GetByIdAsync(cartId);
+            var cart = await _cartRepository.GetByUserIdAsync(userId);
+            
             if (cart == null)
-                throw new NotFoundException(nameof(Cart), cartId);
+                throw new NotFoundException($"Cart for user with ID '{userId}' was not found.");
 
             var productIds = cart.Items.Select(i => i.ProductId).Distinct().ToArray();
             var products = await _productRepository.GetByIdsAsync(productIds);
@@ -67,6 +74,7 @@ namespace EasyOnlineStore.Application.Services
             var newOrder = new Order
             {
                  Id = Guid.NewGuid(),
+                 UserId = userId,
                  OrderNumber = $"ORD-{DateTime.UtcNow:yyyyMMdd-HHmmss}",
                  CreatedDate = DateTime.UtcNow,
                  Status = OrderStatus.Pending,
@@ -86,21 +94,19 @@ namespace EasyOnlineStore.Application.Services
             foreach (var orderItem in newOrder.Items)
             {
                 productsDict[orderItem.ProductId].Stock -= orderItem.Quantity;
-                
             }
 
-            foreach (var product in productsDict.Values)
-                await _productRepository.UpdateAsync(product);
+            await _productRepository.UpdateRangeAsync(productsDict.Values.ToList());
 
             await _orderRepository.CreateAsync(newOrder);
-            await _cartRepository.ClearCartAsync(cartId);
+            await _cartRepository.ClearCartByUserIdAsync(userId);
 
             return _mapper.Map<OrderResponse>(newOrder);
         }
 
-        public async Task<OrderResponse> UpdateOrderStatusAsync(Guid orderId, OrderStatus status)
+        public async Task<OrderResponse> UpdateOrderStatusByUserIdAsync(Guid userId, Guid orderId, OrderStatus status)
         {
-            var order = await _orderRepository.GetByIdAsync(orderId);
+            var order = await _orderRepository.GetByUserIdAsync(userId, orderId);
             if (order == null)
                 throw new NotFoundException(nameof(Order), orderId);
 
@@ -113,9 +119,9 @@ namespace EasyOnlineStore.Application.Services
             return _mapper.Map<OrderResponse>(updatedOrder);
         }
 
-        public async Task<OrderResponse> CancelOrderAsync(Guid orderId)
+        public async Task<OrderResponse> CancelOrderAsync(Guid userId, Guid orderId)
         {
-            var order = await _orderRepository.GetByIdAsync(orderId);
+            var order = await _orderRepository.GetByUserIdAsync(userId, orderId);
             if (order == null)
                 throw new NotFoundException(nameof(Order), orderId);
 
@@ -136,20 +142,32 @@ namespace EasyOnlineStore.Application.Services
                     
             }
 
+            await _productRepository.UpdateRangeAsync(products);
+            
             order.Status = OrderStatus.Cancelled;
             var cancelledOrder = await _orderRepository.UpdateAsync(order);
 
             return _mapper.Map<OrderResponse>(cancelledOrder);
         }
 
-        public async Task<bool> DeleteOrderAsync(Guid orderId)
+        public async Task<bool> DeleteOrderByUserIdAsync(Guid userId, Guid orderId)
         {
-            var order = await _orderRepository.GetByIdAsync(orderId);
+            var order = await _orderRepository.GetByUserIdAsync(userId, orderId);
             if (order == null)
                 throw new NotFoundException(nameof(Order), orderId);
-            return await _orderRepository.RemoveAsync(orderId);
-
+            
+            return await _orderRepository.RemoveByUserIdAsync(userId, orderId);
+            
         }
+        
+        public async Task<bool> DeleteAllByUserIdAsync(Guid userId)
+        {
+            var deleted =  await _orderRepository.RemoveAllByUserIdAsync(userId);
+            
+            if (!deleted)
+                throw new NotFoundException($"User with {userId} id hasn't placed a single order yet");
 
+            return deleted;
+        }
     }
-}
+

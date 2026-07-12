@@ -16,7 +16,7 @@ public class ProductProfile : Profile
 
         // create
         CreateMap<ProductCreateRequest, Product>()
-            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.Images));
+            .ForMember(dest => dest.Images, opt => opt.MapFrom(src => src.ImageUrls));
 
         CreateMap<ProductImage, ProductImageResponse>();
 

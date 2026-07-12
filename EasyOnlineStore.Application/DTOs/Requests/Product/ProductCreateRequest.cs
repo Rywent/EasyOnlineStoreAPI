@@ -8,7 +8,7 @@ public class ProductCreateRequest
     public decimal? OldPrice { get; set; }
     public int Stock { get; set; } = 0;
     public decimal Price { get; set; } = 0;
-    public List<ProductImageRequest> Images { get; set; } = [];
+    public List<ProductImageRequest> ImageUrls { get; set; } = [];
     public Guid CategoryId { get; set; }
     public Guid WarehouseId { get; set; }
 }

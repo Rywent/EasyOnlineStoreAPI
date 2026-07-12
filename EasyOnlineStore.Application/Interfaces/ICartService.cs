@@ -6,12 +6,12 @@ namespace EasyOnlineStore.Application.Interfaces;
 public interface ICartService
 {
     Task<List<CartResponse>> GetAllAsync();
-    Task<CartResponse> GetByIdAsync(Guid id);
-    Task<CartResponse> CreateCartAsync();
-    Task<CartResponse> AddItemToCartAsync(Guid cartId, CartAddItemRequest request);
-    Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid itemId);
-    Task<CartResponse> UpdateItemInCartAsync(Guid cartId, CartItemUpdateRequest request);
-    Task<CartResponse> ClearCartAsync(Guid cartId);
-    Task<bool> DeleteCartAsync(Guid cartId);
+    Task<CartResponse> GetByUserIdAsync(Guid userId);
+    Task<CartResponse> CreateCartAsync(Guid userId);
+    Task<CartResponse> AddItemToCartByUserIdAsync(Guid userId, CartAddItemRequest request);
+    Task<bool> RemoveItemFromCartByUserIdAsync(Guid userId, Guid itemId);
+    Task<CartResponse> UpdateItemInCartByUserIdAsync(Guid userId, CartItemUpdateRequest request);
+    Task<CartResponse> ClearCartByUserIdAsync(Guid userId);
+    Task<bool> DeleteCartByUserIdAsync(Guid userId);
     
 }

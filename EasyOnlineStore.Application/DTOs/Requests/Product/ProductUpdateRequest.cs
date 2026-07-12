@@ -10,4 +10,5 @@ public class ProductUpdateRequest
     public decimal? Price { get; set; }
     public Guid? CategoryId { get; set; }
     public Guid? WarehouseId { get; set; }
+    public List<string> ImageUrls { get; set; } = [];
 }

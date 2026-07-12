@@ -9,58 +9,83 @@ using EasyOnlineStore.Domain.Models.Warehouses;
 
 namespace EasyOnlineStore.Application.Services;
 
-public class WarehouseService : IWarehouseService
+public class WarehouseService(IWarehouseRepository warehouseRepository, IMapper mapper) : IWarehouseService
 {
-    private readonly IWarehouseRepository _warehouseRepository;
-    private readonly IMapper _mapper;
-    public WarehouseService(IWarehouseRepository warehouseRepository, IMapper mapper)
-    {
-        _warehouseRepository = warehouseRepository;
-        _mapper = mapper;
-    }
     public async Task<List<WarehouseShortResponse>> GetAllAsync(int page, int pageSize)
     {
-        var warehouses = await _warehouseRepository.GetAllAsync();
+        var warehouses = await warehouseRepository.GetAllAsync();
         var paged = warehouses
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToList();
-        return _mapper.Map<List<WarehouseShortResponse>>(paged);
+        return mapper.Map<List<WarehouseShortResponse>>(paged);
     }
 
-    public async Task<WarehouseResponse> GetByIdAsync(Guid id)
+    public async Task<WarehouseResponse> GetByIdAsync(Guid warehouseId)
     {
-        var warehouse = await _warehouseRepository.GetByIdAsync(id);
+        var warehouse = await warehouseRepository.GetByIdAsync(warehouseId);
         if (warehouse == null)
-            throw new NotFoundException(nameof(Warehouse), id);
+            throw new NotFoundException(nameof(Warehouse), warehouseId);
 
-        return _mapper.Map<WarehouseResponse>(warehouse);
+        return mapper.Map<WarehouseResponse>(warehouse);
+    }
+    
+    public async Task<WarehouseResponse> GetWarehouseByUserIdAsync(Guid userId, Guid warehouseId)
+    {
+        var warehouse = await warehouseRepository.GetWarehouseByUserIdAsync(userId, warehouseId);
+        if (warehouse == null)
+            throw new NotFoundException(nameof(Warehouse), warehouseId);
+
+        return mapper.Map<WarehouseResponse>(warehouse);
     }
 
-    public async Task<WarehouseResponse> CreateAsync(WarehouseCreateRequest request)
+    public async Task<List<WarehouseResponse>> GetWarehousesByUserIdAsync(Guid userId)
     {
-        var warehouse = _mapper.Map<Warehouse>(request);
-        var createdWarehouse = await _warehouseRepository.CreateAsync(warehouse);
-        return _mapper.Map<WarehouseResponse>(createdWarehouse);
+        var warehouse = await warehouseRepository.GetWarehousesByUserIdAsync(userId);
+        if (warehouse == null)
+            throw new NotFoundException($"User with ID {userId} has no warehouses");
+
+        return mapper.Map<List<WarehouseResponse>>(warehouse);
+    }
+
+    public async Task<WarehouseResponse> CreateAsync(WarehouseCreateRequest request, Guid userId)
+    {
+        var warehouse = mapper.Map<Warehouse>(request);
+        warehouse.OwnerUserId = userId;
+        var createdWarehouse = await warehouseRepository.CreateAsync(warehouse);
+        return mapper.Map<WarehouseResponse>(createdWarehouse);
 
     }
 
-    public async Task<WarehouseResponse> UpdateAsync(Guid id, WarehouseUpdateRequest request)
+    public async Task<WarehouseResponse> UpdateAsync(Guid warehouseId, WarehouseUpdateRequest request, Guid userId)
     {
-        var existingWarehouse = await _warehouseRepository.GetByIdAsync(id);
+        var existingWarehouse = await warehouseRepository.GetWarehouseByUserIdAsync(userId, warehouseId);
         if(existingWarehouse == null)
-            throw new NotFoundException(nameof(Warehouse), id);
+            throw new NotFoundException(nameof(Warehouse), warehouseId);
 
-        _mapper.Map(request, existingWarehouse);
-
-        var updatedWarehouse = await _warehouseRepository.UpdateAsync(existingWarehouse);
-        return _mapper.Map<WarehouseResponse>(updatedWarehouse);
+        mapper.Map(request, existingWarehouse);
+        existingWarehouse.OwnerUserId = userId;
+        
+        var updatedWarehouse = await warehouseRepository.UpdateAsync(existingWarehouse);
+        return mapper.Map<WarehouseResponse>(updatedWarehouse);
     }
-    public async Task<bool> DeleteAsync(Guid id)
+
+    public async Task<bool> CloseWarehousesByUserIdAsync(Guid userId)
     {
-        var warehouse = await _warehouseRepository.GetByIdAsync(id);
-        if (warehouse == null)
-            throw new NotFoundException(nameof(Warehouse), id);
-        return await _warehouseRepository.RemoveAsync(id);
+        var closed = await warehouseRepository.CloseAllByUserIdAsync(userId);
+        if (!closed)
+            throw new NotFoundException($"User with ID {userId} has no active warehouses");
+
+        return true;
+    }
+    
+    public async Task<bool> DeleteByUserIdAsync(Guid userId, Guid warehouseId)
+    {
+        var deleted =  await warehouseRepository.RemoveByUserIdAsync(userId, warehouseId);
+        
+        if(!deleted)
+            throw new NotFoundException(nameof(Warehouse), warehouseId);
+
+        return deleted;
     }
 }

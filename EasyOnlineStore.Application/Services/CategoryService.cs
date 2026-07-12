@@ -7,34 +7,26 @@ using EasyOnlineStore.Domain.Models.Categories;
 
 namespace EasyOnlineStore.Application.Services;
 
-public class CategoryService : ICategoryService
+public class CategoryService(ICategoryRepository categoryRepository, IMapper mapper) : ICategoryService
 {
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IMapper _mapper;
-    public CategoryService(ICategoryRepository categoryRepository, IMapper mapper)
-    {
-        _categoryRepository = categoryRepository;
-        _mapper = mapper;
-    }
-
     public async Task<List<CategoryResponse>> GetAllAsync(int page, int pageSize)
     {
-        var categories = await _categoryRepository.GetAllAsync(page, pageSize);
-        return _mapper.Map<List<CategoryResponse>>(categories ?? []);
+        var categories = await categoryRepository.GetAllAsync(page, pageSize);
+        return mapper.Map<List<CategoryResponse>>(categories);
     }
 
     public async Task<CategoryResponse> GetByIdAsync(Guid id)
     {
-        var category = await _categoryRepository.GetByIdAsync(id);
+        var category = await categoryRepository.GetByIdAsync(id);
         if(category == null)
             throw new NotFoundException(nameof(Category), id);
 
-        return _mapper.Map<CategoryResponse>(category);
+        return mapper.Map<CategoryResponse>(category);
     }
 
     public async Task<string> GetCodeByIdAsync(Guid id)
     {
-        var categoryCode = await _categoryRepository.GetCodeByIdAsync(id);
+        var categoryCode = await categoryRepository.GetCodeByIdAsync(id);
         if(categoryCode == null )
             throw new NotFoundException(nameof(Category), id);
 
@@ -52,17 +44,18 @@ public class CategoryService : ICategoryService
             CategoryName = name
         };
 
-        var created = await _categoryRepository.CreateAsync(category);
-        return _mapper.Map<CategoryResponse>(created);
+        var created = await categoryRepository.CreateAsync(category);
+        return mapper.Map<CategoryResponse>(created);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        var category = await _categoryRepository.GetByIdAsync(id);
-        if (category == null)
+        var deleted =  await categoryRepository.DeleteAsync(id);
+        
+        if(!deleted)
             throw new NotFoundException(nameof(Category), id);
-
-        return await _categoryRepository.DeleteAsync(id);
+        
+        return deleted;
     }
 
     private string GenerateCategoryCode(string name)

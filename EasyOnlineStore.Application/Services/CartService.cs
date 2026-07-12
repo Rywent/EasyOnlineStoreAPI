@@ -26,15 +26,15 @@ public class CartService : ICartService
         return _mapper.Map<List<CartResponse>>(carts ?? []);
     }
 
-    public async Task<CartResponse> GetByIdAsync(Guid id)
+    public async Task<CartResponse> GetByUserIdAsync(Guid userId)
     {
-        var cart = await _cartRepositoty.GetByIdAsync(id);
+        var cart = await _cartRepositoty.GetByUserIdAsync(userId);
         if (cart == null)
-            throw new NotFoundException(nameof(Cart), id);
+            throw new NotFoundException($"Cart for user with ID '{userId}' was not found.");
 
         return _mapper.Map<CartResponse>(cart);
     }
-    public async Task<CartResponse> AddItemToCartAsync(Guid cartId, CartAddItemRequest request)
+    public async Task<CartResponse> AddItemToCartByUserIdAsync(Guid userId, CartAddItemRequest request)
     {
         var product = await _productRepository.GetByIdAsync(request.ProductId);
         if (product == null)
@@ -44,57 +44,62 @@ public class CartService : ICartService
             throw new InsufficientStockException(product, request.Quantity);
 
         var cartItem = _mapper.Map<CartItem>(request);
-        var cart = await _cartRepositoty.AddItemToCartAsync(cartId, cartItem);
+        var cart = await _cartRepositoty.AddItemToCartByUserIdAsync(userId, cartItem);
 
         if (cart == null)
-            throw new NotFoundException(nameof(Cart), cartId);
+            throw new NotFoundException($"Cart for user with ID '{userId}' was not found.");
 
         return _mapper.Map<CartResponse>(cart);
         
     }
-    public async Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid itemId)
+    public async Task<bool> RemoveItemFromCartByUserIdAsync(Guid userId, Guid itemId)
     {
-        var cart = await _cartRepositoty.RemoveItemFromCartAsync(cartId, itemId);
+        var cart = await _cartRepositoty.RemoveItemFromCartByUserIdAsync(userId, itemId);
         if (cart == false)
-            throw new NotFoundException(nameof(Cart), cartId);
+            throw new NotFoundException($"Cart for user with ID '{userId}' was not found.");
 
         return true;
     }
 
-    public async Task<CartResponse> UpdateItemInCartAsync(Guid cartId, CartItemUpdateRequest request)
+    public async Task<CartResponse> UpdateItemInCartByUserIdAsync(Guid userId, CartItemUpdateRequest request)
     {
-        var cartItem = _mapper.Map<CartItem>(request);
-        var cart = await _cartRepositoty.UpdateItemInCartAsync(cartId, cartItem.ProductId, request.Quantity);
+        var cart = await _cartRepositoty.UpdateItemInCartByUserIdAsync(userId, request.ProductId, request.Quantity);
         if (cart == null)
-            throw new NotFoundException(nameof(Cart), cartId);
+            throw new NotFoundException($"Cart for user with ID '{userId}' was not found.");
 
         return _mapper.Map<CartResponse>(cart);
     }
 
-    public async Task<CartResponse> ClearCartAsync(Guid cartId)
+    public async Task<CartResponse> ClearCartByUserIdAsync(Guid userId)
     {
-        var cart = await _cartRepositoty.ClearCartAsync(cartId);
+        var cart = await _cartRepositoty.ClearCartByUserIdAsync(userId);
 
         if (cart == null)
-            throw new NotFoundException(nameof(Cart), cartId);
+            throw new NotFoundException($"Cart for user with ID '{userId}' was not found.");
 
         return _mapper.Map<CartResponse>(cart);
     }
 
-    public async Task<CartResponse> CreateCartAsync()
+    public async Task<CartResponse> CreateCartAsync(Guid userId)
     {
-        var cart = new Cart { Id = Guid.NewGuid(), Items = new List<CartItem>() };
+        var cart = new Cart
+        {
+            Id = Guid.NewGuid(), 
+            Items = new List<CartItem>(), 
+            UserId = userId
+        };
+        
         var createdCart = await _cartRepositoty.CreateAsync(cart);
         return _mapper.Map<CartResponse>(createdCart);
     }
 
-    public async Task<bool> DeleteCartAsync(Guid cartId)
+    public async Task<bool> DeleteCartByUserIdAsync(Guid userId)
     {
-        var cart =  await _cartRepositoty.GetByIdAsync(cartId);
-        if(cart == null)
-            throw new NotFoundException(nameof(Cart),cartId);
-
-        return await _cartRepositoty.RemoveAsync(cartId);
+        var deleted = await _cartRepositoty.RemoveByUserIdAsync(userId);
+        if(!deleted)
+            throw new NotFoundException($"Cart for user with ID '{userId}' was not found.");
+        
+        return deleted;
     }
 
     
