@@ -6,9 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EasyOnlineStore.API.Controllers;
 
 
-[ApiController]
-[Route("api/[controller]")]
-public class AuthController(IUserService userService, ICartService cartService) : ControllerBase
+public class AuthController(IUserService userService, ICartService cartService) : BaseApiController
 {
     
     // POST api/auth/register
@@ -19,7 +17,7 @@ public class AuthController(IUserService userService, ICartService cartService) 
         if (result != null)
         {
             await cartService.CreateCartAsync(result.Id);
-            return Ok(result);
+            return CreatedAtAction(nameof(Register), new { id = result.Id }, result);
         }
         return BadRequest("User not found");
     }

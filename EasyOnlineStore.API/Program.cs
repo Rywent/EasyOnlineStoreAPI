@@ -17,10 +17,11 @@ var configuration = builder.Configuration;
 
 // base services
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 
 // mapper
@@ -99,9 +100,7 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    
 }
 
 // global custom exceptions

@@ -5,15 +5,14 @@ namespace EasyOnlineStore.Application.Interfaces;
 
 public interface IWarehouseService
 {
-    Task<List<WarehouseShortResponse>> GetAllAsync(int page, int pageSize);
-    Task<WarehouseResponse> GetByIdAsync(Guid warehouseId);
-    Task<WarehouseResponse> GetWarehouseByUserIdAsync(Guid userId, Guid warehouseId);
-    Task<List<WarehouseResponse>> GetWarehousesByUserIdAsync(Guid userId);
+    Task<List<WarehouseShortResponse>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default);
+    Task<WarehouseResponse> GetByIdAsync(Guid warehouseId, CancellationToken ct = default);
+    Task<WarehouseResponse> GetWarehouseByUserIdAsync(Guid userId, Guid warehouseId, CancellationToken ct = default);
+    Task<List<WarehouseResponse>> GetWarehousesByUserIdAsync(Guid userId, int page, int pageSize, CancellationToken ct = default);
     
-    Task<WarehouseResponse> CreateAsync(WarehouseCreateRequest request, Guid userId);
-    Task<WarehouseResponse> UpdateAsync(Guid warehouseId, WarehouseUpdateRequest request, Guid userId);
+    Task<WarehouseResponse> CreateAsync(WarehouseCreateRequest request, Guid userId, CancellationToken ct = default);
+    Task<WarehouseResponse> UpdateAsync(Guid warehouseId, WarehouseUpdateRequest request, Guid userId, CancellationToken ct = default);
 
-    Task<bool> DeleteByUserIdAsync(Guid userId, Guid warehouseId);
-    Task<bool> CloseWarehousesByUserIdAsync(Guid userId);
-
+    Task<bool> DeleteByUserIdAsync(Guid userId, Guid warehouseId, CancellationToken ct = default);
+    Task<bool> CloseWarehousesByUserIdAsync(Guid userId, CancellationToken ct = default);
 }

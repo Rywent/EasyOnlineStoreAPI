@@ -4,10 +4,11 @@ namespace EasyOnlineStore.Domain.Interfaces;
 
 public interface ICategoryRepository
 {
-    Task<List<Category>> GetAllAsync(int page, int pageSizegi);
-    Task<Category?> GetByIdAsync(Guid Id);
-    Task<string?> GetCodeByIdAsync(Guid Id);
+    Task<List<Category>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default);
+    Task<Category?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<string?> GetCodeByIdAsync(Guid id, CancellationToken ct = default);
 
-    Task<Category> CreateAsync(Category category);
-    Task<bool> DeleteAsync(Guid Id);
+    Task<Category> CreateAsync(Category category, CancellationToken ct = default);
+    Task<Category> UpdateAsync(Category category, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

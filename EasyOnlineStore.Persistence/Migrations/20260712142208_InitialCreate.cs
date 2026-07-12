@@ -59,17 +59,6 @@ namespace EasyOnlineStore.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Carts",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Carts", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Categories",
                 columns: table => new
                 {
@@ -80,25 +69,6 @@ namespace EasyOnlineStore.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Categories", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Warehouses",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
-                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    Location = table.Column<string>(type: "text", nullable: false),
-                    Adress = table.Column<string>(type: "text", nullable: false),
-                    Phone = table.Column<string>(type: "text", nullable: false),
-                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
-                    DeliveryCost = table.Column<decimal>(type: "numeric", nullable: false),
-                    LikesCount = table.Column<int>(type: "integer", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Warehouses", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -208,6 +178,24 @@ namespace EasyOnlineStore.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Carts",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Carts", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Carts_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
                 {
@@ -215,16 +203,43 @@ namespace EasyOnlineStore.Persistence.Migrations
                     OrderNumber = table.Column<string>(type: "text", nullable: false),
                     Status = table.Column<int>(type: "integer", nullable: false),
                     CreatedDate = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    ApplicationUserId = table.Column<Guid>(type: "uuid", nullable: true)
+                    UserId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Orders_AspNetUsers_ApplicationUserId",
-                        column: x => x.ApplicationUserId,
+                        name: "FK_Orders_AspNetUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id");
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Warehouses",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false, defaultValueSql: "gen_random_uuid()"),
+                    Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Location = table.Column<string>(type: "text", nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: false),
+                    Phone = table.Column<string>(type: "text", nullable: false),
+                    IsActive = table.Column<bool>(type: "boolean", nullable: false),
+                    DeliveryCost = table.Column<decimal>(type: "numeric", nullable: false),
+                    LikesCount = table.Column<int>(type: "integer", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    OwnerUserId = table.Column<Guid>(type: "uuid", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Warehouses", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Warehouses_AspNetUsers_OwnerUserId",
+                        column: x => x.OwnerUserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -243,11 +258,18 @@ namespace EasyOnlineStore.Persistence.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     CategoryId = table.Column<Guid>(type: "uuid", nullable: false),
-                    WarehouseId = table.Column<Guid>(type: "uuid", nullable: false)
+                    WarehouseId = table.Column<Guid>(type: "uuid", nullable: false),
+                    SellerId = table.Column<Guid>(type: "uuid", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Products", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Products_AspNetUsers_SellerId",
+                        column: x => x.SellerId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Products_Categories_CategoryId",
                         column: x => x.CategoryId,
@@ -389,6 +411,12 @@ namespace EasyOnlineStore.Persistence.Migrations
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Carts_UserId",
+                table: "Carts",
+                column: "UserId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId",
                 table: "OrderItems",
                 column: "OrderId");
@@ -404,9 +432,9 @@ namespace EasyOnlineStore.Persistence.Migrations
                 column: "WarehouseId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Orders_ApplicationUserId",
+                name: "IX_Orders_UserId",
                 table: "Orders",
-                column: "ApplicationUserId");
+                column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_ProductImage_ProductId",
@@ -419,9 +447,19 @@ namespace EasyOnlineStore.Persistence.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Products_SellerId",
+                table: "Products",
+                column: "SellerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Products_WarehouseId",
                 table: "Products",
                 column: "WarehouseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Warehouses_OwnerUserId",
+                table: "Warehouses",
+                column: "OwnerUserId");
         }
 
         /// <inheritdoc />
@@ -464,13 +502,13 @@ namespace EasyOnlineStore.Persistence.Migrations
                 name: "Products");
 
             migrationBuilder.DropTable(
-                name: "AspNetUsers");
-
-            migrationBuilder.DropTable(
                 name: "Categories");
 
             migrationBuilder.DropTable(
                 name: "Warehouses");
+
+            migrationBuilder.DropTable(
+                name: "AspNetUsers");
         }
     }
 }

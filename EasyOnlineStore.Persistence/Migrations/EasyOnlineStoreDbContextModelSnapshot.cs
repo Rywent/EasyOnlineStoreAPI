@@ -29,7 +29,13 @@ namespace EasyOnlineStore.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
 
                     b.ToTable("Carts");
                 });
@@ -86,9 +92,6 @@ namespace EasyOnlineStore.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<Guid?>("ApplicationUserId")
-                        .HasColumnType("uuid");
-
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -99,9 +102,12 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Orders");
                 });
@@ -169,6 +175,9 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.Property<decimal>("Rating")
                         .HasColumnType("numeric");
 
+                    b.Property<Guid>("SellerId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ShortDescription")
                         .HasColumnType("text");
 
@@ -188,6 +197,8 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("SellerId");
 
                     b.HasIndex("WarehouseId");
 
@@ -311,7 +322,7 @@ namespace EasyOnlineStore.Persistence.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("gen_random_uuid()");
 
-                    b.Property<string>("Adress")
+                    b.Property<string>("Address")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -336,11 +347,16 @@ namespace EasyOnlineStore.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<Guid>("OwnerUserId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Phone")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId");
 
                     b.ToTable("Warehouses");
                 });
@@ -475,6 +491,17 @@ namespace EasyOnlineStore.Persistence.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Carts.Cart", b =>
+                {
+                    b.HasOne("EasyOnlineStore.Domain.Models.Users.ApplicationUser", "User")
+                        .WithOne("Cart")
+                        .HasForeignKey("EasyOnlineStore.Domain.Models.Carts.Cart", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("EasyOnlineStore.Domain.Models.Carts.CartItem", b =>
                 {
                     b.HasOne("EasyOnlineStore.Domain.Models.Carts.Cart", "Cart")
@@ -498,7 +525,9 @@ namespace EasyOnlineStore.Persistence.Migrations
                 {
                     b.HasOne("EasyOnlineStore.Domain.Models.Users.ApplicationUser", null)
                         .WithMany("Orders")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("EasyOnlineStore.Domain.Models.Orders.OrderItem", b =>
@@ -536,6 +565,12 @@ namespace EasyOnlineStore.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("EasyOnlineStore.Domain.Models.Users.ApplicationUser", "Seller")
+                        .WithMany()
+                        .HasForeignKey("SellerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("EasyOnlineStore.Domain.Models.Warehouses.Warehouse", "Warehouse")
                         .WithMany("Products")
                         .HasForeignKey("WarehouseId")
@@ -543,6 +578,8 @@ namespace EasyOnlineStore.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+
+                    b.Navigation("Seller");
 
                     b.Navigation("Warehouse");
                 });
@@ -556,6 +593,17 @@ namespace EasyOnlineStore.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("EasyOnlineStore.Domain.Models.Warehouses.Warehouse", b =>
+                {
+                    b.HasOne("EasyOnlineStore.Domain.Models.Users.ApplicationUser", "OwnerUser")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("OwnerUser");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -626,6 +674,8 @@ namespace EasyOnlineStore.Persistence.Migrations
 
             modelBuilder.Entity("EasyOnlineStore.Domain.Models.Users.ApplicationUser", b =>
                 {
+                    b.Navigation("Cart");
+
                     b.Navigation("Orders");
                 });
 

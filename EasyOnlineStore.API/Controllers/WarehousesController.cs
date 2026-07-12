@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using EasyOnlineStore.Application.DTOs.Requests.Warehouse;
+﻿using EasyOnlineStore.Application.DTOs.Requests.Warehouse;
 using EasyOnlineStore.Application.DTOs.Responses.Warehouse;
 using EasyOnlineStore.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -7,133 +6,127 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EasyOnlineStore.API.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
 [Authorize]
-public class WarehousesController(IWarehouseService warehouseService) : ControllerBase
+public class WarehousesController(IWarehouseService warehouseService) : BaseApiController
 {
     #region AllUsers
 
-    // GET api/warehouses/warehouseId
+    // GET api/warehouses/{warehouseId}
     [HttpGet("{warehouseId:guid}")]
     [AllowAnonymous]
-    public async Task<ActionResult<WarehouseResponse>> GetById(Guid warehouseId)
+    public async Task<ActionResult<WarehouseResponse>> GetById(Guid warehouseId, CancellationToken ct = default)
     {
-        var warehouse = await warehouseService.GetByIdAsync(warehouseId);
+        var warehouse = await warehouseService.GetByIdAsync(warehouseId, ct);
         return Ok(warehouse);
     }
 
-    // GET api/warehouses/user/userId
+    // GET api/warehouses/user/{userId}?page=1&pageSize=10
     [HttpGet("user/{userId:guid}")]
     [AllowAnonymous]
-    public async Task<ActionResult<List<WarehouseResponse>>> GetWarehousesBySeller(Guid userId)
+    public async Task<ActionResult<List<WarehouseResponse>>> GetWarehousesBySeller(
+        Guid userId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
     {
-        var warehouses = await warehouseService.GetWarehousesByUserIdAsync(userId);
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
+
+        var warehouses = await warehouseService.GetWarehousesByUserIdAsync(userId, page, pageSize, ct);
         return Ok(warehouses);
     }
 
     #endregion
     
-    #region SellerAdminDeveloper
+    #region Seller, Admin & Developer
     
-    // GET api/warehouses/my
+    // GET api/warehouses/my?page=1&pageSize=10
     [HttpGet("my")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<List<WarehouseResponse>>> GetMyWarehouses()
+    public async Task<ActionResult<List<WarehouseResponse>>> GetMyWarehouses(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        CancellationToken ct = default)
     {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
+
         var userId = GetUserIdFromToken();
-        var warehouses = await warehouseService.GetWarehousesByUserIdAsync(userId);
+        var warehouses = await warehouseService.GetWarehousesByUserIdAsync(userId, page, pageSize, ct);
         return Ok(warehouses);
     }
     
-    // GET api/warehouses/my/warehouseId
+    // GET api/warehouses/my/{warehouseId}
     [HttpGet("my/{warehouseId:guid}")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<WarehouseResponse>> GetMyWarehouse(Guid warehouseId)
+    public async Task<ActionResult<WarehouseResponse>> GetMyWarehouse(Guid warehouseId, CancellationToken ct = default)
     {
         var userId = GetUserIdFromToken();
-        var warehouse = await warehouseService.GetWarehouseByUserIdAsync(userId, warehouseId);
+        var warehouse = await warehouseService.GetWarehouseByUserIdAsync(userId, warehouseId, ct);
         return Ok(warehouse);
     }
     
     // POST api/warehouses
     [HttpPost]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<WarehouseResponse>> Create(WarehouseCreateRequest request)
+    public async Task<ActionResult<WarehouseResponse>> Create(WarehouseCreateRequest request, CancellationToken ct = default)
     {
         var userId = GetUserIdFromToken();
-        var createdWarehouse = await warehouseService.CreateAsync(request, userId);
-        return Ok(createdWarehouse);
+        var createdWarehouse = await warehouseService.CreateAsync(request, userId, ct);
+        return CreatedAtAction(nameof(GetById), new { warehouseId = createdWarehouse.Id }, createdWarehouse);
     }
     
-    // PATH api/warehouses/warehouseId
+    // PATCH api/warehouses/{warehouseId}
     [HttpPatch("{warehouseId:guid}")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<WarehouseResponse>> Update(Guid warehouseId, WarehouseUpdateRequest request)
+    public async Task<ActionResult<WarehouseResponse>> Update(Guid warehouseId, WarehouseUpdateRequest request, CancellationToken ct = default)
     {
         var userId = GetUserIdFromToken();
-        var updatedWarehouse = await warehouseService.UpdateAsync(warehouseId, request, userId);
+        var updatedWarehouse = await warehouseService.UpdateAsync(warehouseId, request, userId, ct);
         return Ok(updatedWarehouse);
     }
     
+    // POST api/warehouses/my/close
     [HttpPost("my/close")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult> CloseAllMyWarehouses()
+    public async Task<ActionResult> CloseAllMyWarehouses(CancellationToken ct = default)
     {
         var userId = GetUserIdFromToken();
-        await warehouseService.CloseWarehousesByUserIdAsync(userId);
+        await warehouseService.CloseWarehousesByUserIdAsync(userId, ct);
         return NoContent();
     }
-    
 
-    // DELETE api/warehouses/warehouseId
+    // DELETE api/warehouses/{warehouseId}
     [HttpDelete("{warehouseId:guid}")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult> Delete(Guid warehouseId)
+    public async Task<ActionResult> Delete(Guid warehouseId, CancellationToken ct = default)
     {
         var userId = GetUserIdFromToken();
-        var result = await warehouseService.DeleteByUserIdAsync(userId, warehouseId);
+        var result = await warehouseService.DeleteByUserIdAsync(userId, warehouseId, ct);
         return result ? NoContent() : NotFound();
     }
     
     #endregion
     
+    #region Admin & Developer
     
-    
-    #region AdminDeveloper
-    
-    // GET api/warehouses
-    [Authorize(Roles = "Admin,Developer")]
+    // GET api/warehouses?page=1&pageSize=10
     [HttpGet]
-    public async Task<ActionResult<List<WarehouseResponse>>> GetAll([FromQuery] int page=1, [FromQuery] int pageSize=10)
+    [Authorize(Roles = "Admin,Developer")]
+    public async Task<ActionResult<List<WarehouseShortResponse>>> GetByPage(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10, 
+        CancellationToken ct = default)
     {
-        if (pageSize <= 0) pageSize = 10;
         if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
 
-        var warehouses = await warehouseService.GetAllAsync(page, pageSize);
+        var warehouses = await warehouseService.GetByPageAsync(page, pageSize, ct);
         return Ok(warehouses);
     }
     
     #endregion
-    
-
-    
-
-    
-
-    
-    
-    private Guid GetUserIdFromToken()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                          ?? User.FindFirst("sub")?.Value;
-        
-        if (string.IsNullOrEmpty(userIdClaim))
-            throw new UnauthorizedAccessException("User ID not found in token");
-        
-        if (!Guid.TryParse(userIdClaim, out var userId))
-            throw new BadHttpRequestException("Invalid user ID in token");
-        
-        return userId;
-    }
 }

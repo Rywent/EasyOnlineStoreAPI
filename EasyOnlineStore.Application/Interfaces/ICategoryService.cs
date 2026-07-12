@@ -4,10 +4,10 @@ namespace EasyOnlineStore.Application.Interfaces;
 
 public interface ICategoryService
 {
-    Task<List<CategoryResponse>> GetAllAsync(int page, int pageSize);
-    Task<CategoryResponse> GetByIdAsync(Guid id);
-    Task<string> GetCodeByIdAsync(Guid id);
-
-    Task<CategoryResponse> CreateAsync(string name);
-    Task<bool> DeleteAsync(Guid id);
+    Task<List<CategoryResponse>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default);
+    Task<CategoryResponse> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<string> GetCodeByIdAsync(Guid id, CancellationToken ct = default);
+    Task<CategoryResponse> CreateAsync(string name, CancellationToken ct = default);
+    Task<CategoryResponse> UpdateAsync(Guid id, string name, CancellationToken ct = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken ct = default);
 }

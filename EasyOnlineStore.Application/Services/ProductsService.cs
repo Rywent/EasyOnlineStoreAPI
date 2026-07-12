@@ -9,68 +9,46 @@ using EasyOnlineStore.Domain.Models.Categories;
 
 namespace EasyOnlineStore.Application.Services;
 
-public class ProductsService : IProductService
+public class ProductsService(
+    IProductRepository productRepository,
+    ICategoryRepository categoryRepository,
+    IWarehouseRepository warehouseRepository,
+    IMapper mapper)
+    : IProductService
 {
-    private readonly IProductRepository _productRepository;
-    private readonly ICategoryRepository _categoryRepository;
-    private readonly IWarehouseRepository _warehouseRepository;
-    private readonly IMapper _mapper;
-
-    public ProductsService(IProductRepository productRepository, ICategoryRepository categoryRepository, IWarehouseRepository warehouseRepository, IMapper mapper)
+    public async Task<ProductResponse> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        _productRepository = productRepository;
-        _categoryRepository = categoryRepository;
-        _warehouseRepository = warehouseRepository;
-        _mapper = mapper;
-    }
-
-    public async Task<List<ProductResponse>> GetAllAsync()
-    {
-        var products = await _productRepository.GetAllAsync();
-        return _mapper.Map<List<ProductResponse>>(products ?? []);
-    }
-
-    public async Task<ProductResponse> GetByIdAsync(Guid id)
-    {
-        var product = await _productRepository.GetByIdAsync(id);
+        var product = await productRepository.GetByIdAsync(id, ct);
 
         if (product == null)
             throw new NotFoundException(nameof(Product), id);
 
-        return _mapper.Map<ProductResponse>(product);
+        return mapper.Map<ProductResponse>(product);
     }
 
-    public async Task<List<ProductResponse>> GetByPageAsync(int page, int pageSize)
+    public async Task<List<ProductResponse>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default)
     {
-        var products = await _productRepository.GetByPageAsync(page, pageSize);
-        return _mapper.Map<List<ProductResponse>>(products ?? []);
-    }
-    
-    public async Task<List<ProductResponse>> GetProductsBySellerIdAsync(Guid sellerId)
-    {
-        var products = await _productRepository.GetProductsBySellerIdAsync(sellerId);
-        return _mapper.Map<List<ProductResponse>>(products ?? []);
+        var products = await productRepository.GetByPageAsync(page, pageSize, ct);
+        return mapper.Map<List<ProductResponse>>(products);
     }
 
-    public async Task<List<ProductResponse>> GetProductsByPageBySellerIdAsync(Guid sellerId, int page, int pageSize)
+    public async Task<List<ProductResponse>> GetBySellerIdAsync(Guid sellerId, int page, int pageSize, CancellationToken ct = default)
     {
-        var products = await _productRepository.GetProductsByPageBySellerIdAsync(sellerId, page, pageSize);
-        return _mapper.Map<List<ProductResponse>>(products ?? []);
+        var products = await productRepository.GetProductsByPageBySellerIdAsync(sellerId, page, pageSize, ct);
+        return mapper.Map<List<ProductResponse>>(products);
     }
 
-
-    public async Task<ProductResponse> CreateAsync(Guid sellerId, ProductCreateRequest request)
+    public async Task<ProductResponse> CreateAsync(Guid sellerId, ProductCreateRequest request, CancellationToken ct = default)
     {
-        var categoryCode = await _categoryRepository.GetCodeByIdAsync(request.CategoryId);
+        var categoryCode = await categoryRepository.GetCodeByIdAsync(request.CategoryId, ct);
         if (categoryCode == null)
             throw new NotFoundException(nameof(Category), request.CategoryId);
 
-        var warehouse = await _warehouseRepository.GetByIdAsync(request.WarehouseId);
+        var warehouse = await warehouseRepository.GetByIdAsync(request.WarehouseId, ct);
         if (warehouse == null || warehouse.OwnerUserId != sellerId)
             throw new ForbiddenException("Error adding the item. This warehouse does not belong to you.");
         
-        
-        var productEntity = _mapper.Map<Product>(request);
+        var productEntity = mapper.Map<Product>(request);
         
         var productId = Guid.NewGuid();
         
@@ -88,12 +66,13 @@ public class ProductsService : IProductService
             ImageUrl = img.ImageUrl
         }).ToList();
         
-        var createdProduct = await _productRepository.UpdateAsync(productEntity);
-        return _mapper.Map<ProductResponse>(createdProduct);
+        var createdProduct = await productRepository.UpdateAsync(productEntity, ct);
+        return mapper.Map<ProductResponse>(createdProduct);
     }
-    public async Task<ProductResponse> UpdateAsync(Guid sellerId, Guid productId, ProductUpdateRequest request)
+
+    public async Task<ProductResponse> UpdateAsync(Guid sellerId, Guid productId, ProductUpdateRequest request, CancellationToken ct = default)
     {
-        var existingProduct = await _productRepository.GetByIdAsync(productId);
+        var existingProduct = await productRepository.GetByIdAsync(productId, ct);
         if (existingProduct == null)
             throw new NotFoundException(nameof(Product), productId);
 
@@ -102,12 +81,12 @@ public class ProductsService : IProductService
         
         if (request.WarehouseId.HasValue && existingProduct.WarehouseId != request.WarehouseId.Value)
         {
-            var warehouse = await _warehouseRepository.GetByIdAsync(request.WarehouseId.Value);
+            var warehouse = await warehouseRepository.GetByIdAsync(request.WarehouseId.Value, ct);
             if (warehouse == null || warehouse.OwnerUserId != sellerId)
                 throw new ForbiddenException("You cannot move product to this warehouse. This warehouse does not belong to you.");
         }
         
-        _mapper.Map(request, existingProduct);
+        mapper.Map(request, existingProduct);
         existingProduct.UpdatedAt = DateTime.UtcNow;
         
         if (request.ImageUrls != null && request.ImageUrls.Count > 0)
@@ -124,14 +103,13 @@ public class ProductsService : IProductService
             }
         }
         
-        var updatedProduct = await _productRepository.UpdateAsync(existingProduct);
-        return _mapper.Map<ProductResponse>(updatedProduct);
+        var updatedProduct = await productRepository.UpdateAsync(existingProduct, ct);
+        return mapper.Map<ProductResponse>(updatedProduct);
     }
 
-    
-    public async Task<ProductImageResponse> AddImageAsync(Guid sellerId, Guid productId, ProductImageUploadRequest request)
+    public async Task<ProductImageResponse> AddImageAsync(Guid sellerId, Guid productId, ProductImageUploadRequest request, CancellationToken ct = default)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
+        var product = await productRepository.GetByIdAsync(productId, ct);
         if (product == null)
             throw new NotFoundException(nameof(Product), productId);
 
@@ -146,14 +124,14 @@ public class ProductsService : IProductService
         };
 
         product.Images.Add(newImage);
-        await _productRepository.UpdateAsync(product);
+        await productRepository.UpdateAsync(product, ct);
 
-        return _mapper.Map<ProductImageResponse>(newImage);
+        return mapper.Map<ProductImageResponse>(newImage);
     }
 
-    public async Task<List<ProductImageResponse>> AddImagesAsync(Guid sellerId, Guid productId, List<ProductImageUploadRequest> requests)
+    public async Task<List<ProductImageResponse>> AddImagesAsync(Guid sellerId, Guid productId, List<ProductImageUploadRequest> requests, CancellationToken ct = default)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
+        var product = await productRepository.GetByIdAsync(productId, ct);
         if (product == null)
             throw new NotFoundException(nameof(Product), productId);
 
@@ -172,14 +150,14 @@ public class ProductsService : IProductService
             product.Images.Add(img);
         }
 
-        await _productRepository.UpdateAsync(product);
+        await productRepository.UpdateAsync(product, ct);
 
-        return _mapper.Map<List<ProductImageResponse>>(newImages);
+        return mapper.Map<List<ProductImageResponse>>(newImages);
     }
 
-    public async Task<bool> DeleteImageAsync(Guid sellerId, Guid productId, Guid imageId)
+    public async Task<bool> DeleteImageAsync(Guid sellerId, Guid productId, Guid imageId, CancellationToken ct = default)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
+        var product = await productRepository.GetByIdAsync(productId, ct);
         if (product == null)
             throw new NotFoundException(nameof(Product), productId);
 
@@ -191,15 +169,14 @@ public class ProductsService : IProductService
             throw new NotFoundException("Image", imageId);
 
         product.Images.Remove(imageToRemove);
-        await _productRepository.UpdateAsync(product);
+        await productRepository.UpdateAsync(product, ct);
 
         return true;
     }
 
-
-    public async Task<bool> DeleteAsync(Guid sellerId, Guid productId)
+    public async Task<bool> DeleteAsync(Guid sellerId, Guid productId, CancellationToken ct = default)
     {
-        var product = await _productRepository.GetByIdAsync(productId);
+        var product = await productRepository.GetByIdAsync(productId, ct);
         
         if (product == null)
             throw new NotFoundException(nameof(Product), productId);
@@ -207,15 +184,13 @@ public class ProductsService : IProductService
         if (product.SellerId != sellerId)
             throw new ForbiddenException("You do not have permission to delete this product.");
         
-        return await _productRepository.RemoveAsync(sellerId, productId);
-        
-
+        return await productRepository.RemoveAsync(sellerId, productId, ct);
     }
 
     private string GenerateSku(string productName, string categoryCode, Guid productId)
     {
         string cleanName = new string(productName
-                .Where(c => char.IsLetterOrDigit(c))
+                .Where(char.IsLetterOrDigit)
                 .ToArray())
             .ToUpper();
         
@@ -227,7 +202,6 @@ public class ProductsService : IProductService
             : cleanName.Substring(0, 6);
         
         string categoryPart = categoryCode.Trim().ToUpper();
-
 
         string guidHex = productId.ToString("N");
         string uniquePart = guidHex.Substring(28, 4).ToUpper();

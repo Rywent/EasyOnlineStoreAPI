@@ -5,13 +5,13 @@ namespace EasyOnlineStore.Application.Interfaces;
 
 public interface ICartService
 {
-    Task<List<CartResponse>> GetAllAsync();
-    Task<CartResponse> GetByUserIdAsync(Guid userId);
-    Task<CartResponse> CreateCartAsync(Guid userId);
-    Task<CartResponse> AddItemToCartByUserIdAsync(Guid userId, CartAddItemRequest request);
-    Task<bool> RemoveItemFromCartByUserIdAsync(Guid userId, Guid itemId);
-    Task<CartResponse> UpdateItemInCartByUserIdAsync(Guid userId, CartItemUpdateRequest request);
-    Task<CartResponse> ClearCartByUserIdAsync(Guid userId);
-    Task<bool> DeleteCartByUserIdAsync(Guid userId);
+    Task<List<CartResponse>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default);
+    Task<CartResponse> GetByUserIdAsync(Guid userId, CancellationToken ct = default);
+    Task<CartResponse> AddItemToCartByUserIdAsync(Guid userId, CartAddItemRequest request, CancellationToken ct = default);
+    Task<CartResponse> UpdateItemInCartByUserIdAsync(Guid userId, CartItemUpdateRequest request, CancellationToken ct = default);
+    Task<CartResponse> ClearCartByUserIdAsync(Guid userId, CancellationToken ct = default);
+    Task<CartResponse> CreateCartAsync(Guid userId, CancellationToken ct = default);
     
+    Task<bool> RemoveItemFromCartByUserIdAsync(Guid userId, Guid itemId, CancellationToken ct = default);
+    Task<bool> DeleteCartByUserIdAsync(Guid userId, CancellationToken ct = default);
 }

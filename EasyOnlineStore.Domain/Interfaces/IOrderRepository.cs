@@ -4,15 +4,14 @@ namespace EasyOnlineStore.Domain.Interfaces;
 
 public interface IOrderRepository
 {
-    public Task<List<Order>> GetAllAsync();
-    public Task<Order?> GetByUserIdAsync(Guid userId, Guid orderId);
-    public Task<List<Order>> GetOrdersByUserIdAsync(Guid userId);
-    public Task<List<Order>> GetByPageAsync(int page, int pageSize);
-    public Task<List<Order>> GetByFilterAsync(DateTime? createdDate, OrderStatus? status);
+    public Task<List<Order>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default);
+    public Task<Order?> GetByUserIdAsync(Guid userId, Guid orderId, CancellationToken ct = default);
+    public Task<List<Order>> GetOrdersByUserIdAsync(Guid userId, int page, int pageSize, CancellationToken ct = default);
+    Task<List<Order>> GetByFilterAsync(DateTime? createdDate, OrderStatus? status, int page, int pageSize, CancellationToken ct = default);
 
-    public Task<Order> CreateAsync(Order order);
-    public Task<bool> RemoveByUserIdAsync(Guid userId, Guid orderId);
-    public Task<bool> RemoveAllByUserIdAsync(Guid userId);
-
-    public Task<Order> UpdateAsync(Order order);
+    public Task<Order> CreateAsync(Order order, CancellationToken ct = default);
+    public Task<Order> UpdateAsync(Order order, CancellationToken ct = default);
+    public Task<bool> RemoveByUserIdAsync(Guid userId, Guid orderId, CancellationToken ct = default);
+    public Task<bool> RemoveAllByUserIdAsync(Guid userId, CancellationToken ct = default);
+    
 }

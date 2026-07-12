@@ -19,38 +19,38 @@ public class UserService(
     JwtProvider jwtProvider)
     : IUserService
 {
-    public async Task<UserResponse?> GetUserByIdAsync(Guid userId)
+    public async Task<UserResponse?> GetUserByIdAsync(Guid userId, CancellationToken ct = default)
     {
-        var user = await userRepository.GetByIdAsync(userId);
+        var user = await userRepository.GetByIdAsync(userId, ct);
         if (user == null)
             throw new NotFoundException($"User with ID {userId} not found");
             
         return mapper.Map<UserResponse>(user);
     }
 
-    public async Task<List<UserResponse>> GetAllUsersAsync()
+    public async Task<List<UserResponse>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default)
     {
-        var users = await userRepository.GetAllUsersAsync();
+        var users = await userRepository.GetUsersByPageAsync(page, pageSize, ct);
         return mapper.Map<List<UserResponse>>(users);
     }
 
-    public async Task<UserResponse?> GetUserByEmailAsync(string email)
+    public async Task<UserResponse?> GetUserByEmailAsync(string email, CancellationToken ct = default)
     {
-        var user = await userRepository.GetByEmailWithPasswordHashAsync(email);
+        var user = await userRepository.GetByEmailWithPasswordHashAsync(email, ct);
         if (user == null)
             throw new NotFoundException($"User with email {email} not found");
             
         return mapper.Map<UserResponse>(user);
     }
 
-    public async Task<LoginResponse> LoginAsync(LoginRequest request)
+    public async Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken ct = default)
     {
-        var user = await userRepository.GetByEmailWithPasswordHashAsync(request.Email);
-        if(user == null)
+        var user = await userRepository.GetByEmailWithPasswordHashAsync(request.Email, ct);
+        if (user == null)
             throw new NotFoundException("User with email address not found");
         
         var isPasswordValid = await userManager.CheckPasswordAsync(user, request.Password);
-        if(!isPasswordValid)
+        if (!isPasswordValid)
             throw new ValidationException("Invalid password");
         
         var token = jwtProvider.GenerateToken(user);
@@ -61,11 +61,11 @@ public class UserService(
         return loginResponse;
     }
 
-    public async Task<UserResponse?> RegisterAsync(RegisterRequest request)
+    public async Task<UserResponse?> RegisterAsync(RegisterRequest request, CancellationToken ct = default)
     {
         var userEmail = request.Email;
-        var existingUser = await userRepository.GetByEmailWithPasswordHashAsync(request.Email);
-        if(existingUser != null)
+        var existingUser = await userRepository.GetByEmailWithPasswordHashAsync(request.Email, ct);
+        if (existingUser != null)
             throw new ConflictException("Email", userEmail);
         
         var userEntity = mapper.Map<ApplicationUser>(request);

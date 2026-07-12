@@ -1,5 +1,4 @@
-﻿using System.Security.Claims;
-using EasyOnlineStore.Application.DTOs.Requests.Product;
+﻿using EasyOnlineStore.Application.DTOs.Requests.Product;
 using EasyOnlineStore.Application.DTOs.Responses.Product;
 using EasyOnlineStore.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -7,77 +6,64 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace EasyOnlineStore.API.Controllers;
 
-[ApiController]
-[Route("api/[controller]")]
 [Authorize]
-public class ProductsController(IProductService productService) : ControllerBase
+public class ProductsController(IProductService productService) : BaseApiController
 {
     #region All Users & Guests
-
-    // GET: api/products/all
-    [HttpGet("all")]
-    [AllowAnonymous] 
-    public async Task<ActionResult<List<ProductResponse>>> GetAll()
-    {
-        var products = await productService.GetAllAsync();
-        return Ok(products);
-    }
 
     // GET: api/products/{id}
     [HttpGet("{id:guid}")]
     [AllowAnonymous]
-    public async Task<ActionResult<ProductResponse>> GetById(Guid id)
+    public async Task<ActionResult<ProductResponse>> GetById(Guid id, CancellationToken ct = default)
     {
-        var product = await productService.GetByIdAsync(id);
+        var product = await productService.GetByIdAsync(id, ct);
         return Ok(product);
     }
 
     // GET: api/products?page=1&pageSize=10
     [HttpGet]
     [AllowAnonymous]
-    public async Task<ActionResult<List<ProductResponse>>> GetByPage([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<ActionResult<List<ProductResponse>>> GetByPage(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10, 
+        CancellationToken ct = default)
     {
-        if (pageSize <= 0) pageSize = 10;
         if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
 
-        var products = await productService.GetByPageAsync(page, pageSize);
+        var products = await productService.GetByPageAsync(page, pageSize, ct);
         return Ok(products);
     }
 
     #endregion
 
-    #region Seller Admin & Developer
+    #region Seller, Admin & Developer
 
-    // GET: api/products/my
+    // GET: api/products/my?page=1&pageSize=10
     [HttpGet("my")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<List<ProductResponse>>> GetMyProducts()
+    public async Task<ActionResult<List<ProductResponse>>> GetMyProducts(
+        [FromQuery] int page = 1, 
+        [FromQuery] int pageSize = 10, 
+        CancellationToken ct = default)
     {
-        var sellerId = GetUserIdFromToken();
-        var products = await productService.GetProductsBySellerIdAsync(sellerId);
-        return Ok(products);
-    }
-
-    // GET: api/products/my/paged?page=1&pageSize=10
-    [HttpGet("my/paged")]
-    [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<List<ProductResponse>>> GetMyProductsPaged([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-    {
-        if (pageSize <= 0) pageSize = 10;
         if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 10;
+        if (pageSize > 100) pageSize = 100;
 
         var sellerId = GetUserIdFromToken();
-        var products = await productService.GetProductsByPageBySellerIdAsync(sellerId, page, pageSize);
+        var products = await productService.GetBySellerIdAsync(sellerId, page, pageSize, ct);
         return Ok(products);
     }
 
     // POST: api/products
     [HttpPost]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<ProductResponse>> Create([FromBody] ProductCreateRequest request)
+    public async Task<ActionResult<ProductResponse>> Create([FromBody] ProductCreateRequest request, CancellationToken ct = default)
     {
         var sellerId = GetUserIdFromToken();
-        var createdProduct = await productService.CreateAsync(sellerId, request);
+        var createdProduct = await productService.CreateAsync(sellerId, request, ct);
         
         return CreatedAtAction(nameof(GetById), new { id = createdProduct.Id }, createdProduct);
     }
@@ -85,70 +71,56 @@ public class ProductsController(IProductService productService) : ControllerBase
     // PATCH: api/products/{id}
     [HttpPatch("{id:guid}")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<ProductResponse>> Update(Guid id, [FromBody] ProductUpdateRequest request)
+    public async Task<ActionResult<ProductResponse>> Update(Guid id, [FromBody] ProductUpdateRequest request, CancellationToken ct = default)
     {
         var sellerId = GetUserIdFromToken();
-        var updatedProduct = await productService.UpdateAsync(sellerId, id, request);
+        var updatedProduct = await productService.UpdateAsync(sellerId, id, request, ct);
         return Ok(updatedProduct);
     }
 
     // DELETE: api/products/{id}
     [HttpDelete("{id:guid}")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken ct = default)
     {
         var sellerId = GetUserIdFromToken();
-        var result = await productService.DeleteAsync(sellerId, id);
+        var result = await productService.DeleteAsync(sellerId, id, ct);
         return result ? NoContent() : NotFound();
     }
 
     #endregion
 
-    #region Seller, Admin, Developer
+    #region Product Images
 
     // POST: api/products/{id}/images
     [HttpPost("{id:guid}/images")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<ProductImageResponse>> AddImage(Guid id, [FromBody] ProductImageUploadRequest request)
+    public async Task<ActionResult<ProductImageResponse>> AddImage(Guid id, [FromBody] ProductImageUploadRequest request, CancellationToken ct = default)
     {
         var sellerId = GetUserIdFromToken();
-        var result = await productService.AddImageAsync(sellerId, id, request);
+        var result = await productService.AddImageAsync(sellerId, id, request, ct);
         return Ok(result);
     }
 
     // POST: api/products/{id}/images/bulk
     [HttpPost("{id:guid}/images/bulk")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<ActionResult<List<ProductImageResponse>>> AddImages(Guid id, [FromBody] List<ProductImageUploadRequest> requests)
+    public async Task<ActionResult<List<ProductImageResponse>>> AddImages(Guid id, [FromBody] List<ProductImageUploadRequest> requests, CancellationToken ct = default)
     {
         var sellerId = GetUserIdFromToken();
-        var result = await productService.AddImagesAsync(sellerId, id, requests);
+        var result = await productService.AddImagesAsync(sellerId, id, requests, ct);
         return Ok(result);
     }
 
     // DELETE: api/products/{id}/images/{imageId}
     [HttpDelete("{id:guid}/images/{imageId:guid}")]
     [Authorize(Roles = "Seller,Admin,Developer")]
-    public async Task<IActionResult> DeleteImage(Guid id, Guid imageId)
+    public async Task<IActionResult> DeleteImage(Guid id, Guid imageId, CancellationToken ct = default)
     {
         var sellerId = GetUserIdFromToken();
-        await productService.DeleteImageAsync(sellerId, id, imageId);
+        await productService.DeleteImageAsync(sellerId, id, imageId, ct);
         return NoContent();
     }
 
     #endregion
-
-    private Guid GetUserIdFromToken()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
-                          ?? User.FindFirst("sub")?.Value;
-        
-        if (string.IsNullOrEmpty(userIdClaim))
-            throw new UnauthorizedAccessException("User ID not found in token");
-        
-        if (!Guid.TryParse(userIdClaim, out var userId))
-            throw new BadHttpRequestException("Invalid user ID in token");
-        
-        return userId;
-    }
 }

@@ -6,67 +6,70 @@ namespace EasyOnlineStore.Persistence.Repositories;
 
 public class WarehouseRepository(EasyOnlineStoreDbContext dbContext) : IWarehouseRepository
 {
-    public async Task<List<Warehouse>> GetAllAsync()
+    public async Task<List<Warehouse>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default)
     {
         return await dbContext.Warehouses
             .AsNoTracking()
-            .ToListAsync();
+            .OrderBy(w => w.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
     }
     
-    public async Task<Warehouse?> GetByIdAsync(Guid id)
+    public async Task<Warehouse?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
         return await dbContext.Warehouses
             .Include(w => w.Products)
-            .FirstOrDefaultAsync(w => w.Id == id);
+            .FirstOrDefaultAsync(w => w.Id == id, ct);
+    }
 
-    }
-    public async Task<Warehouse?> GetWarehouseByUserIdAsync(Guid userId, Guid warehouseId)
+    public async Task<Warehouse?> GetWarehouseByUserIdAsync(Guid userId, Guid warehouseId, CancellationToken ct = default)
     {
         return await dbContext.Warehouses
             .Include(w => w.Products)
-            .FirstOrDefaultAsync(w => w.OwnerUserId == userId && w.Id == warehouseId);
+            .FirstOrDefaultAsync(w => w.OwnerUserId == userId && w.Id == warehouseId, ct);
     }
     
-    public async Task<List<Warehouse>> GetWarehousesByUserIdAsync(Guid userId)
+    public async Task<List<Warehouse>> GetWarehousesByUserIdAsync(Guid userId, int page, int pageSize, CancellationToken ct = default)
     {
         return await dbContext.Warehouses
             .Where(w => w.OwnerUserId == userId)
+            .AsNoTracking()
             .Include(w => w.Products)
-            .ToListAsync();
+            .OrderBy(w => w.Id)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(ct);
     }
 
-    public async Task<Warehouse> CreateAsync(Warehouse warehouse)
+    public async Task<Warehouse> CreateAsync(Warehouse warehouse, CancellationToken ct = default)
     {
-        await dbContext.Warehouses.AddAsync(warehouse);
-        await dbContext.SaveChangesAsync();
+        await dbContext.Warehouses.AddAsync(warehouse, ct);
+        await dbContext.SaveChangesAsync(ct);
         return warehouse;
     }
-    public async Task<Warehouse> UpdateAsync(Warehouse warehouse)
-    {
-        var existing = await dbContext.Warehouses.FindAsync(warehouse.Id);
-        if (existing == null)
-            throw new KeyNotFoundException($"Warehouse {warehouse.Id} not found.");
 
-        dbContext.Entry(existing).CurrentValues.SetValues(warehouse);
-        await dbContext.SaveChangesAsync();
+    public async Task<Warehouse> UpdateAsync(Warehouse warehouse, CancellationToken ct = default)
+    {
+        dbContext.Warehouses.Update(warehouse);
+        await dbContext.SaveChangesAsync(ct);
         return warehouse;
     }
-    public async Task<bool> CloseAllByUserIdAsync(Guid userId)
+
+    public async Task<bool> CloseAllByUserIdAsync(Guid userId, CancellationToken ct = default)
     {
         var affectedRows = await dbContext.Warehouses
             .Where(w => w.OwnerUserId == userId && w.IsActive)
-            .ExecuteUpdateAsync(s => s.SetProperty(w => w.IsActive, false));
+            .ExecuteUpdateAsync(s => s.SetProperty(w => w.IsActive, false), ct);
 
         return affectedRows > 0;
     }
     
-    public async Task<bool> RemoveByUserIdAsync(Guid userId, Guid warehouseId)
+    public async Task<bool> RemoveByUserIdAsync(Guid userId, Guid warehouseId, CancellationToken ct = default)
     {
         var result = await dbContext.Warehouses
             .Where(w => w.OwnerUserId == userId && w.Id == warehouseId)
-            .ExecuteDeleteAsync();
-
+            .ExecuteDeleteAsync(ct);
         return result > 0;
     }
-
 }
