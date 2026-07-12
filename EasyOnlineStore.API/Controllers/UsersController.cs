@@ -91,6 +91,23 @@ public class UsersController(IUserService userService) : ControllerBase
         return Ok(new { Message = "User unlocked successfully" });
     }
     
+    // PUT: api/users/{id}/role
+    [HttpPut("{id:guid}/role")]
+    [Authorize(Roles = "Admin")]
+    public async Task<ActionResult> UpdateUserRole(Guid id, [FromBody] UpdateRoleRequest request)
+    {
+        await userService.UpdateUserRolesAsync(id, request.Roles);
+        return Ok(new { Message = $"User roles updated to {string.Join(", ", request.Roles)} successfully" });
+    }
+
+    // GET: api/users/{id}/roles
+    [HttpGet("{id:guid}/roles")]
+    [Authorize(Roles = "Admin,Developer")]
+    public async Task<ActionResult<List<string>>> GetUserRoles(Guid id)
+    {
+        var roles = await userService.GetUserRolesAsync(id);
+        return Ok(roles);
+    }
     
     #endregion
     

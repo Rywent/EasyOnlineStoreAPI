@@ -12,10 +12,15 @@ public class CartConfiguration : IEntityTypeConfiguration<Cart>
 
         builder.Property(c => c.Id)
             .HasDefaultValueSql("gen_random_uuid()");
-
+        
         builder.HasMany(c => c.Items)
                .WithOne(ci => ci.Cart)
                .HasForeignKey(ci => ci.CartId)
                .OnDelete(DeleteBehavior.Cascade);
+        
+        builder.HasOne(c => c.User)
+            .WithOne(u => u.Cart)
+            .HasForeignKey<Cart>(c => c.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

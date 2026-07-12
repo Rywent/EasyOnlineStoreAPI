@@ -1,5 +1,6 @@
 ﻿using EasyOnlineStore.Domain.Models.Warehouses;
 using EasyOnlineStore.Domain.Models.Categories;
+using EasyOnlineStore.Domain.Models.Users;
 
 
 namespace EasyOnlineStore.Domain.Models.Products;
@@ -25,4 +26,8 @@ public class Product
     public Category Category { get; set; } = null!;
     public Guid WarehouseId { get; set; }
     public Warehouse Warehouse { get; set; } = null!;
+    
+    public Guid SellerId { get; set; }
+    public ApplicationUser Seller { get; set; } = null!;
+    
 }

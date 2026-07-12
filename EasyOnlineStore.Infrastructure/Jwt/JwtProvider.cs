@@ -16,11 +16,15 @@ public class JwtProvider(IOptions<JwtOptions> options)
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-            new Claim(ClaimTypes.Role, user.Role.ToString()),
         };
         
         if (!string.IsNullOrEmpty(user.Email))
             claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+        
+        foreach (var role in user.Roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+        }
         
         var signingCredentials = new SigningCredentials(
             new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey)), 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using EasyOnlineStore.Domain.Enums;
+using EasyOnlineStore.Domain.Models.Carts;
 using EasyOnlineStore.Domain.Models.Orders;
 
 namespace EasyOnlineStore.Domain.Models.Users;
@@ -12,10 +13,10 @@ public class ApplicationUser : IdentityUser<Guid>
     public string? Address { get; set; }
     public string? City { get; set; }
     public string? Country { get; set; }
-    
-    public ICollection<Role> Roles { get; set; } = [];
 
+    public ICollection<UserRole> Roles { get; set; } = []; 
     public DateTime RegistrationDate { get; set; } = DateTime.UtcNow;
-
     public List<Order>? Orders { get; set; } = new();
+    
+    public Cart? Cart { get; set; }
 }

@@ -24,13 +24,15 @@ builder.Services.AddSwaggerGen();
 
 
 // mapper
-builder.Services.AddAutoMapper(
-    typeof(UserProfile).Assembly,
-    typeof(ProductProfile).Assembly,
-    typeof(CartProfile).Assembly,
-    typeof(OrderProfile).Assembly,
-    typeof(WarehouseProfile).Assembly,
-    typeof(CategoryProfile).Assembly);
+builder.Services.AddAutoMapper(cfg =>
+{
+    cfg.AddProfile<UserProfile>();
+    cfg.AddProfile<ProductProfile>();
+    cfg.AddProfile<CartProfile>();
+    cfg.AddProfile<OrderProfile>();
+    cfg.AddProfile<WarehouseProfile>();
+    cfg.AddProfile<CategoryProfile>();
+});
 
 
 // data base context
@@ -54,8 +56,8 @@ builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSett
 builder.Services.AddScoped<JwtProvider>(); 
 
 // authentication
-ApiExtensions.AddApiAuthentication(builder.Services, jwtSettings);
-ApiExtensions.AddApiAuthorization(builder.Services);
+builder.Services.AddApiAuthentication(jwtSettings);
+builder.Services.AddApiAuthorization();
 
 // registration repositories
 builder.Services.AddScoped<IUserRepository, UserRepository>(

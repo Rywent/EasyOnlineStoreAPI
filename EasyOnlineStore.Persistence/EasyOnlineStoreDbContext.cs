@@ -16,11 +16,9 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace EasyOnlineStore.Persistence;
 
-public class EasyOnlineStoreDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>
+public class EasyOnlineStoreDbContext(DbContextOptions<EasyOnlineStoreDbContext> options)
+    : IdentityDbContext<ApplicationUser, IdentityRole<Guid>, Guid>(options)
 {
-    public EasyOnlineStoreDbContext(DbContextOptions<EasyOnlineStoreDbContext> options)
-        : base(options) { }
-
     public DbSet<Warehouse> Warehouses { get; set; }
     public DbSet<Product> Products { get; set; }
     public DbSet<Cart> Carts { get; set; }
@@ -28,6 +26,7 @@ public class EasyOnlineStoreDbContext : IdentityDbContext<ApplicationUser, Ident
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Category> Categories { get; set; }
+    
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -41,7 +40,7 @@ public class EasyOnlineStoreDbContext : IdentityDbContext<ApplicationUser, Ident
         modelBuilder.ApplyConfiguration(new OrderItemConfiguration());
         modelBuilder.ApplyConfiguration(new CategoryConfiguration());
         modelBuilder.ApplyConfiguration(new UserConfiguration());
-        
+
 
         
     }

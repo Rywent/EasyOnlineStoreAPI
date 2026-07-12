@@ -8,7 +8,7 @@ namespace EasyOnlineStore.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class AuthController(IUserService userService) : ControllerBase
+public class AuthController(IUserService userService, ICartService cartService) : ControllerBase
 {
     
     // POST api/auth/register
@@ -16,7 +16,12 @@ public class AuthController(IUserService userService) : ControllerBase
     public async Task<ActionResult<UserResponse>> Register(RegisterRequest request)
     {
         var result = await userService.RegisterAsync(request);
-        return Ok(result);
+        if (result != null)
+        {
+            await cartService.CreateCartAsync(result.Id);
+            return Ok(result);
+        }
+        return BadRequest("User not found");
     }
 
     // POST api/auth/login

@@ -5,12 +5,12 @@ namespace EasyOnlineStore.Domain.Interfaces;
 public interface ICartRepository
 {
     Task<List<Cart>> GetAllAsync();
-    Task<Cart?> GetByIdAsync(Guid id);
-    Task<Cart?> AddItemToCartAsync(Guid cartId, CartItem item);
-    Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid itemId);
-    Task<Cart?> ClearCartAsync(Guid cartId);
+    Task<Cart?> GetByUserIdAsync(Guid userId);
+    Task<Cart?> AddItemToCartByUserIdAsync(Guid userId, CartItem item);
+    Task<bool> RemoveItemFromCartByUserIdAsync(Guid userId, Guid itemId);
+    Task<Cart?> ClearCartByUserIdAsync(Guid userId);
     Task<Cart> CreateAsync(Cart cart);
-    Task<bool> RemoveAsync(Guid id);
-    Task<Cart?> UpdateItemInCartAsync(Guid cartId, Guid itemId, int quantity);
+    Task<bool> RemoveByUserIdAsync(Guid userId);
+    Task<Cart?> UpdateItemInCartByUserIdAsync(Guid userId, Guid itemId, int quantity);
 
 }

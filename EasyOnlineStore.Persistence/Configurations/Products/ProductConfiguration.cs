@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using EasyOnlineStore.Domain.Models.Products;
+using EasyOnlineStore.Domain.Models.Users;
 
 
 namespace EasyOnlineStore.Persistence.Configurations.Products;
@@ -30,6 +31,12 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithOne(pi => pi.Product)
             .HasForeignKey(pi => pi.ProductId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder
+            .HasOne(s => s.Seller)
+            .WithMany()
+            .HasForeignKey(si => si.SellerId)
+            .OnDelete(DeleteBehavior.Restrict);
 
     }
 }

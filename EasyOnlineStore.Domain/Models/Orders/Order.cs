@@ -9,4 +9,6 @@ public class Order
     public OrderStatus Status { get; set; }
     public DateTime CreatedDate { get; set; }
     public List<OrderItem> Items { get; set; } = [];
+    
+    public Guid UserId { get; set; }
 }

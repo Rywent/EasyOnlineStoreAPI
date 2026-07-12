@@ -1,83 +1,113 @@
-﻿using EasyOnlineStore.Application.DTOs.Requests.Cart;
+﻿using System.Security.Claims;
+using EasyOnlineStore.Application.DTOs.Requests.Cart;
 using EasyOnlineStore.Application.DTOs.Responses.Cart;
 using EasyOnlineStore.Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasyOnlineStore.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class CartsController : ControllerBase
+[Authorize]
+public class CartsController(ICartService cartService) : ControllerBase
 {
-    private readonly ICartService _cartService;
-    public CartsController(ICartService cartService)
-    {
-        _cartService = cartService;
-    }
+
+    #region AllUsers 
 
     // GET: api/carts
-    [HttpGet]
-    public async Task<ActionResult<List<CartResponse>>> GetAll()
+    [HttpGet()]
+    public async Task<ActionResult<CartResponse>> GetByUserId()
     {
-        var carts = await _cartService.GetAllAsync();
-        return Ok(carts);
-    }
-
-    // GET: api/carts/id
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<CartResponse>> GetById(Guid id)
-    {
-        var cart = await _cartService.GetByIdAsync(id);
+        var userId = GetUserIdFromToken();
+        var cart = await cartService.GetByUserIdAsync(userId);
         return Ok(cart);
     }
-
-    // POST: api/carts
-    [HttpPost]
-    public async Task<ActionResult<CartResponse>> CreateCart()
-    {
-        var createdCart = await _cartService.CreateCartAsync();
-        return CreatedAtAction(nameof(GetById), new { id = createdCart.CartId }, createdCart);
-    }
+    
 
     // POST: api/carts/cartId/items
-    [HttpPost("{cartId:guid}/items")]
-    public async Task<ActionResult<CartResponse>> AddCartItem(Guid cartId, CartAddItemRequest request)
+    [HttpPost("items/add")]
+    public async Task<ActionResult<CartResponse>> AddCartItem(CartAddItemRequest request)
     {
-        var cart = await _cartService.AddItemToCartAsync(cartId, request);
+        var userId = GetUserIdFromToken();
+        var cart = await cartService.AddItemToCartByUserIdAsync(userId, request);
         return Ok(cart);
     }
 
     // PATCH api/carts/cartId/items/itemId
-    [HttpPatch("{cartId:guid}/items/")]
-    public async Task<ActionResult<CartResponse>> UpdateCartItem(Guid cartId, CartItemUpdateRequest request)
+    [HttpPatch("items/update")]
+    public async Task<ActionResult<CartResponse>> UpdateCartItem(CartItemUpdateRequest request)
     {
-        var cart = await _cartService.UpdateItemInCartAsync(cartId, request);
+        var userId = GetUserIdFromToken();
+        var cart = await cartService.UpdateItemInCartByUserIdAsync(userId, request);
         return Ok(cart);
     }
 
     // DELETE api/carts/cartId/items/itemId
-    [HttpDelete("{cartId:guid}/items/{itemId:guid}")]
-    public async Task<ActionResult<CartResponse>> RemoveCartItem(Guid cartId, Guid itemId)
+    [HttpDelete("items/delete/{productId:guid}")]
+    public async Task<ActionResult<CartResponse>> RemoveCartItem(Guid productId)
     {
-        var cart = await _cartService.RemoveItemFromCartAsync(cartId, itemId);
+        var userId = GetUserIdFromToken();
+        var cart = await cartService.RemoveItemFromCartByUserIdAsync(userId, productId);
         return Ok(cart);
     }
 
     //POST api/carts/cartId/items/clear
-    [HttpPost("{cartId:guid}/items/clear")]
-    public async Task<ActionResult<CartResponse>> ClearCart(Guid cartId)
+    [HttpPost("items/clear")]
+    public async Task<ActionResult<CartResponse>> ClearCart()
     {
-        var cart = await _cartService.ClearCartAsync(cartId);
+        var userId = GetUserIdFromToken();
+        var cart = await cartService.ClearCartByUserIdAsync(userId);
         return Ok(cart);
     }
-
-    // DELETE api/carts/id
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> DeleteCart(Guid id)
+    
+    #endregion
+    
+    #region Admin and Developer
+    
+    // GET: api/carts/all
+    [HttpGet("all")]
+    [Authorize(Roles = "Admin,Developer")]
+    public async Task<ActionResult<List<CartResponse>>> GetAll()
     {
-        var result = await _cartService.DeleteCartAsync(id);
+        var carts = await cartService.GetAllAsync();
+        return Ok(carts);
+    }
+    
+    // POST: api/carts/create/userId
+    [HttpPost("create/{userId:guid}")]
+    [Authorize(Roles = "Admin, Developer")]
+    public async Task<ActionResult<CartResponse>> CreateCart(Guid userId)
+    {
+        var createdCart = await cartService.CreateCartAsync(userId);
+        return CreatedAtAction(nameof(GetByUserId), null, createdCart);
+    }
+    
+    // DELETE api/carts/id
+    [HttpDelete("{userId:guid}")]
+    [Authorize(Roles = "Admin, Developer")]
+    public async Task<IActionResult> DeleteCart(Guid userId)
+    {
+        var result = await cartService.DeleteCartByUserIdAsync(userId);
         return result ? NoContent() : NotFound();
 
+    }
+    
+    #endregion
+    
+    
+    private Guid GetUserIdFromToken()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                          ?? User.FindFirst("sub")?.Value;
+        
+        if (string.IsNullOrEmpty(userIdClaim))
+            throw new UnauthorizedAccessException("User ID not found in token");
+        
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            throw new BadHttpRequestException("Invalid user ID in token");
+        
+        return userId;
     }
 
 

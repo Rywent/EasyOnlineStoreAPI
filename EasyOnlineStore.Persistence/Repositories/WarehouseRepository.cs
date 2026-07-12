@@ -4,57 +4,69 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EasyOnlineStore.Persistence.Repositories;
 
-public class WarehouseRepository : IWarehouseRepository
+public class WarehouseRepository(EasyOnlineStoreDbContext dbContext) : IWarehouseRepository
 {
-    private readonly EasyOnlineStoreDbContext _dbContext;
-
-    public WarehouseRepository(EasyOnlineStoreDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
     public async Task<List<Warehouse>> GetAllAsync()
     {
-        return await _dbContext.Warehouses
+        return await dbContext.Warehouses
             .AsNoTracking()
-            .Select(w => new Warehouse
-            {
-                Id = w.Id,
-                Name = w.Name,
-                Adress = w.Adress,
-            })
             .ToListAsync();
     }
+    
     public async Task<Warehouse?> GetByIdAsync(Guid id)
     {
-        return await _dbContext.Warehouses
+        return await dbContext.Warehouses
             .Include(w => w.Products)
             .FirstOrDefaultAsync(w => w.Id == id);
+
+    }
+    public async Task<Warehouse?> GetWarehouseByUserIdAsync(Guid userId, Guid warehouseId)
+    {
+        return await dbContext.Warehouses
+            .Include(w => w.Products)
+            .FirstOrDefaultAsync(w => w.OwnerUserId == userId && w.Id == warehouseId);
+    }
+    
+    public async Task<List<Warehouse>> GetWarehousesByUserIdAsync(Guid userId)
+    {
+        return await dbContext.Warehouses
+            .Where(w => w.OwnerUserId == userId)
+            .Include(w => w.Products)
+            .ToListAsync();
     }
 
     public async Task<Warehouse> CreateAsync(Warehouse warehouse)
     {
-        await _dbContext.Warehouses.AddAsync(warehouse);
-        await _dbContext.SaveChangesAsync();
+        await dbContext.Warehouses.AddAsync(warehouse);
+        await dbContext.SaveChangesAsync();
         return warehouse;
     }
     public async Task<Warehouse> UpdateAsync(Warehouse warehouse)
     {
-        var existing = await _dbContext.Warehouses.FindAsync(warehouse.Id);
+        var existing = await dbContext.Warehouses.FindAsync(warehouse.Id);
         if (existing == null)
             throw new KeyNotFoundException($"Warehouse {warehouse.Id} not found.");
 
-        _dbContext.Entry(existing).CurrentValues.SetValues(warehouse);
-        await _dbContext.SaveChangesAsync();
+        dbContext.Entry(existing).CurrentValues.SetValues(warehouse);
+        await dbContext.SaveChangesAsync();
         return warehouse;
     }
-    public async Task<bool> RemoveAsync(Guid id)
+    public async Task<bool> CloseAllByUserIdAsync(Guid userId)
     {
-        var result = await _dbContext.Warehouses
-            .Where(w => w.Id == id)
+        var affectedRows = await dbContext.Warehouses
+            .Where(w => w.OwnerUserId == userId && w.IsActive)
+            .ExecuteUpdateAsync(s => s.SetProperty(w => w.IsActive, false));
+
+        return affectedRows > 0;
+    }
+    
+    public async Task<bool> RemoveByUserIdAsync(Guid userId, Guid warehouseId)
+    {
+        var result = await dbContext.Warehouses
+            .Where(w => w.OwnerUserId == userId && w.Id == warehouseId)
             .ExecuteDeleteAsync();
 
         return result > 0;
     }
 
-    
 }

@@ -6,18 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations.Operations.Builders;
 
 namespace EasyOnlineStore.Persistence.Repositories;
 
-public class OrderRepository : IOrderRepository
+public class OrderRepository(EasyOnlineStoreDbContext dbContext) : IOrderRepository
 {
-    private readonly EasyOnlineStoreDbContext _dbContext;
-
-    public OrderRepository(EasyOnlineStoreDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task<List<Order>> GetAllAsync()
     {
-        return await _dbContext.Orders
+        return await dbContext.Orders
             .AsNoTracking()
             .Include(o => o.Items)
                 .ThenInclude(o => o.Product)
@@ -26,19 +19,30 @@ public class OrderRepository : IOrderRepository
             .ToListAsync();
     }
 
-    public async Task<Order?> GetByIdAsync(Guid id)
+    public async Task<Order?> GetByUserIdAsync(Guid userId, Guid orderId)
     {
-        return await _dbContext.Orders
+        return await dbContext.Orders
             .AsNoTracking()
             .Include(o => o.Items)!
                 .ThenInclude(i => i.Product)
-                .ThenInclude(i => i.Warehouse!)
-            .FirstOrDefaultAsync(o => o.Id == id);
+                .ThenInclude(i => i!.Warehouse!)
+            .FirstOrDefaultAsync(o => o.UserId == userId && o.Id == orderId);
+    }
+        
+    public async Task<List<Order>> GetOrdersByUserIdAsync(Guid userId)
+    {
+        return await dbContext.Orders
+            .Where(o => o.UserId == userId)
+            .AsNoTracking()
+            .Include(o => o.Items)!
+            .ThenInclude(i => i.Product)
+            .ThenInclude(i => i!.Warehouse!)
+            .ToListAsync();
     }
 
     public async Task<List<Order>> GetByPageAsync(int page, int pageSize)
     {
-        return await _dbContext.Orders
+        return await dbContext.Orders
             .AsNoTracking()
             .Include(o => o.Items)
                 .ThenInclude(o => o.Product)
@@ -50,7 +54,7 @@ public class OrderRepository : IOrderRepository
     }
     public async Task<List<Order>> GetByFilterAsync(DateTime? createdDate, OrderStatus? status)
     {
-        var query = _dbContext.Orders.AsNoTracking();
+        var query = dbContext.Orders.AsNoTracking();
 
         if (status.HasValue)
         {
@@ -70,26 +74,35 @@ public class OrderRepository : IOrderRepository
 
     public async Task<Order> CreateAsync(Order order)
     {
-        await _dbContext.Orders.AddAsync(order);
-        await _dbContext.SaveChangesAsync();
+        await dbContext.Orders.AddAsync(order);
+        await dbContext.SaveChangesAsync();
         return order;
     }
     public async Task<Order> UpdateAsync(Order order)
     {
-        var existing = await _dbContext.Orders.FindAsync(order.Id);
+        var existing = await dbContext.Orders.FindAsync(order.Id);
         if (existing == null) 
             throw new KeyNotFoundException($"Order {order.Id} not found");
 
-        _dbContext.Entry(existing).CurrentValues.SetValues(order);
-        await _dbContext.SaveChangesAsync();
+        dbContext.Entry(existing).CurrentValues.SetValues(order);
+        await dbContext.SaveChangesAsync();
         return order;
     }
-    public async Task<bool> RemoveAsync(Guid id)
+    public async Task<bool> RemoveByUserIdAsync(Guid userId, Guid orderId)
     {
-        var result = await _dbContext.Orders
-            .Where(o => o.Id == id)
+        var result = await dbContext.Orders
+            .Where(o => o.UserId == userId && o.Id == orderId)
             .ExecuteDeleteAsync();
 
+        return result > 0;
+    }
+
+    public async Task<bool> RemoveAllByUserIdAsync(Guid userId)
+    {
+        var result = await dbContext.Orders
+            .Where(o => o.UserId == userId)
+            .ExecuteDeleteAsync();
+        
         return result > 0;
     }
 

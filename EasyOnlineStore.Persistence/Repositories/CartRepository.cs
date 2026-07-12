@@ -4,45 +4,38 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EasyOnlineStore.Persistence.Repositories;
 
-public class CartRepository : ICartRepository
+public class CartRepository(EasyOnlineStoreDbContext dbContext) : ICartRepository
 {
-    private readonly EasyOnlineStoreDbContext _dbContext;
-
-    public CartRepository(EasyOnlineStoreDbContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
-
     public async Task<List<Cart>> GetAllAsync()
     {
-        return await _dbContext.Carts
+        return await dbContext.Carts
             .AsNoTracking()
             .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
             .ToListAsync();
     }
 
-    public async Task<Cart?> GetByIdAsync(Guid id)
+    public async Task<Cart?> GetByUserIdAsync(Guid userId)
     {
-        return await _dbContext.Carts
+        return await dbContext.Carts
             .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
-            .SingleOrDefaultAsync(c => c.Id == id);
+            .SingleOrDefaultAsync(c=> c.UserId == userId);
     }
 
     public async Task<Cart> CreateAsync(Cart cart)
     {
-        await _dbContext.Carts.AddAsync(cart);
-        await _dbContext.SaveChangesAsync();
+        await dbContext.Carts.AddAsync(cart);
+        await dbContext.SaveChangesAsync();
         return cart;
 
     }
-    public async Task<Cart?> AddItemToCartAsync(Guid cartId, CartItem item)
+    public async Task<Cart?> AddItemToCartByUserIdAsync(Guid userId, CartItem item)
     {
-        var cart = await _dbContext.Carts
+        var cart = await dbContext.Carts
             .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
-            .FirstOrDefaultAsync(c => c.Id == cartId);
+            .FirstOrDefaultAsync(c => c.UserId == userId);
 
         if (cart == null)
             return null;
@@ -56,21 +49,21 @@ public class CartRepository : ICartRepository
         }
         else
         {
-            item.CartId = cartId;
+            item.CartId = cart.Id;
             cart.Items.Add(item);
         }
 
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         return cart;
     }
-    public async Task<bool> RemoveItemFromCartAsync(Guid cartId, Guid productId)
+    public async Task<bool> RemoveItemFromCartByUserIdAsync(Guid userId, Guid productId)
     {
-        var cart = await _dbContext.Carts
+        var cart = await dbContext.Carts
             .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
-            .FirstOrDefaultAsync(c => c.Id == cartId);
+            .FirstOrDefaultAsync(c => c.UserId == userId);
 
-        if (cart == null)
+        if (cart is null)
             return false;
 
         var existingItem = cart.Items
@@ -80,29 +73,29 @@ public class CartRepository : ICartRepository
             return false;
 
         cart.Items.Remove(existingItem);
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
 
         return true;
     }
-    public async Task<Cart?> ClearCartAsync(Guid cartId)
+    public async Task<Cart?> ClearCartByUserIdAsync(Guid userId)
     {
-        var cart = await _dbContext.Carts
+        var cart = await dbContext.Carts
             .Include(c => c.Items)
-            .FirstOrDefaultAsync(c => c.Id == cartId);
+            .FirstOrDefaultAsync(c => c.UserId == userId);
 
         if (cart == null)
             return null;
 
         cart.Items.Clear();
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         return cart;
     }
-    public async Task<Cart?> UpdateItemInCartAsync(Guid cartId, Guid productId, int quantity)
+    public async Task<Cart?> UpdateItemInCartByUserIdAsync(Guid userId, Guid productId, int quantity)
     {
-        var cart = await _dbContext.Carts
+        var cart = await dbContext.Carts
             .Include(c => c.Items)
                 .ThenInclude(i => i.Product)
-            .FirstOrDefaultAsync(c => c.Id == cartId);
+            .FirstOrDefaultAsync(c => c.UserId == userId);
 
         if (cart == null) return null;
 
@@ -111,13 +104,13 @@ public class CartRepository : ICartRepository
 
         existingItem.Quantity = quantity;
 
-        await _dbContext.SaveChangesAsync();
+        await dbContext.SaveChangesAsync();
         return cart;
     }
-    public async Task<bool> RemoveAsync(Guid id)
+    public async Task<bool> RemoveByUserIdAsync(Guid userId)
     {
-        var result = await _dbContext.Carts
-            .Where(c => c.Id == id)
+        var result = await dbContext.Carts
+            .Where(c => c.UserId == userId)
             .ExecuteDeleteAsync();
         return result > 0;
     }

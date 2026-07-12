@@ -18,5 +18,11 @@ public class WarehouseConfiguration : IEntityTypeConfiguration<Warehouse>
             .Property(w => w.Name)
             .IsRequired()
             .HasMaxLength(100);
+        
+        builder
+            .HasOne(w => w.OwnerUser)
+            .WithMany()
+            .HasForeignKey(w => w.OwnerUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

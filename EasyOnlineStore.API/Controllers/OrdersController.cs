@@ -1,76 +1,122 @@
-﻿using EasyOnlineStore.Application.DTOs.Responses.Order;
+﻿using System.Security.Claims;
+using EasyOnlineStore.Application.DTOs.Responses.Order;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EasyOnlineStore.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class OrdersController : ControllerBase
+[Authorize]
+public class OrdersController(IOrderService orderService) : ControllerBase
 {
-    private readonly IOrderService _orderService;
-    public OrdersController(IOrderService orderService)
-    {
-        _orderService = orderService;
-    }
+    #region AllUsers
 
     // GET: api/orders/
-    [HttpGet]
-    public async Task<ActionResult<List<OrderResponse>>> GetByPage([FromQuery] int page=1, [FromQuery] int pageSize=10)
+    [HttpGet("{orderId:guid}")]
+    public async Task<ActionResult<OrderResponse>> GetByUserId(Guid orderId)
     {
-        var orders = await _orderService.GetByPageAsync(page, pageSize);
-        return Ok(orders ?? []);
-    }
-
-    // GET: api/orders/all
-    [HttpGet("all")]
-    public async Task<ActionResult<List<OrderResponse>>> GetAll()
-    {
-        var orders = await _orderService.GetAllAsync();
-        return Ok(orders ?? []);
-    }
-
-    // GET: api/orders/id
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<OrderResponse>> GetById(Guid id)
-    {
-        var order = await _orderService.GetByIdAsync(id);
+        var userId = GetUserIdFromToken();
+        var order = await orderService.GetByUserIdAsync(userId, orderId);
         return Ok(order);
     }
 
-    // POST: api/orders/cartId
-    [HttpPost("{cartId:guid}")]
-    public async Task<ActionResult<OrderResponse>> CreateOrder(Guid cartId)
+    // GET: api/orders
+    [HttpGet()]
+    public async Task<ActionResult<List<OrderResponse>>> GetAllOrdersByUserId()
     {
-        var createdOrder = await _orderService.CreateOrderAsync(cartId);
-        return CreatedAtAction(nameof(GetById), new { id = createdOrder.Id },createdOrder);
+        var userId = GetUserIdFromToken();
+        var orders = await orderService.GetAllByUserIdAsync(userId);
+        return Ok(orders);
     }
-
-    // PATCH: /api/orders/orderId?status=statusName
-    [HttpPatch("{orderId:guid}")]
-    public async Task<ActionResult<OrderResponse>> UpdateStatus(Guid orderId, [FromQuery] OrderStatus status)
+    
+    // POST: api/orders/create/
+    [HttpPost("create")]
+    public async Task<ActionResult<OrderResponse>> CreateOrderByUserId()
     {
-        var updatedOrder = await _orderService.UpdateOrderStatusAsync(orderId, status);
-        return Ok(updatedOrder);
+        var userId = GetUserIdFromToken();
+        var createdOrder = await orderService.CreateOrderByUserIdAsync(userId);
+        return CreatedAtAction(nameof(GetByUserId), new { orderId = createdOrder.Id }, createdOrder);
     }
-
-    // DELETE: api/orders/id
-    [HttpDelete("{id:guid}")]
-    public async Task<ActionResult<bool>> DeleteOrder(Guid orderId)
+    
+    // PUT: api/orders/cancel/orderId
+    [HttpPut("cancel/{orderId:guid}")]
+    public async Task<ActionResult<OrderResponse>> CancelOrder(Guid orderId)
     {
-        var result = await _orderService.DeleteOrderAsync(orderId);
-        return NoContent();
-    }
-
-    // PUT: api/orders/cancel/id
-    [HttpPut("cancel/{id:guid}")]
-    public async Task<ActionResult<OrderResponse>> CancelOrder(Guid id)
-    {
-        var order = await _orderService.GetByIdAsync(id);
-        var canceledOrder = await _orderService.CancelOrderAsync(id);
+        var userId = GetUserIdFromToken();
+        var canceledOrder = await orderService.CancelOrderAsync(userId, orderId);
         return Ok(canceledOrder);
 
     }
+    #endregion
+    
+    
+    #region Admin & Developer
+    
+    // GET: api/orders/
+    [HttpGet]
+    [Authorize(Roles = "Admin, Developer")]
+    public async Task<ActionResult<List<OrderResponse>>> GetByPage([FromQuery] int page=1, [FromQuery] int pageSize=10)
+    {
+        var orders = await orderService.GetByPageAsync(page, pageSize);
+        return Ok(orders);
+    }
+    
+    // GET: api/orders/all
+    [HttpGet("all")]
+    [Authorize(Roles = "Admin, Developer")]
+    public async Task<ActionResult<List<OrderResponse>>> GetAll()
+    {
+        var orders = await orderService.GetAllAsync();
+        return Ok(orders);
+    }
+    
+    // PATCH: /api/orders/admin/{orderId}?status=StatusName&userId=
+    [HttpPatch("admin/{orderId:guid}")]
+    [Authorize(Roles = "Admin, Developer")]
+    public async Task<ActionResult<OrderResponse>> UpdateStatus(Guid orderId, 
+        [FromQuery] OrderStatus status, 
+        [FromQuery] Guid userId)
+    {
+        var updatedOrder = await orderService.UpdateOrderStatusByUserIdAsync(userId, orderId, status);
+        return Ok(updatedOrder);
+    }
 
+    // DELETE: api/orders/admin/{orderId}?userId=
+    [HttpDelete("admin/{orderId:guid}")]
+    [Authorize(Roles = "Admin,Developer")]
+    public async Task<ActionResult<bool>> DeleteOrder(Guid orderId, [FromQuery] Guid userId)
+    {
+        await orderService.DeleteOrderByUserIdAsync(userId, orderId);
+        return NoContent();
+    }
+
+    // DELETE: api/orders/admin/all?userId=
+    [HttpDelete("admin/all")]
+    [Authorize(Roles = "Admin,Developer")]
+    public async Task<ActionResult<bool>> DeleteAllOrders([FromQuery] Guid userId)
+    {
+        await orderService.DeleteAllByUserIdAsync(userId);
+        return NoContent();
+    }
+    
+    #endregion
+    
+    
+    private Guid GetUserIdFromToken()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+                          ?? User.FindFirst("sub")?.Value;
+        
+        if (string.IsNullOrEmpty(userIdClaim))
+            throw new UnauthorizedAccessException("User ID not found in token");
+        
+        if (!Guid.TryParse(userIdClaim, out var userId))
+            throw new BadHttpRequestException("Invalid user ID in token");
+        
+        return userId;
+    }
+    
 }

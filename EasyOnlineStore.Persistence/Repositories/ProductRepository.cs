@@ -23,10 +23,22 @@ public class ProductRepository(EasyOnlineStoreDbContext dbContext) : IProductRep
             .FirstOrDefaultAsync(p => p.Id == id);
 
     }
-    public async Task<List<Product>> GetByIdsAsync(Guid[] ids)
+
+    public async Task<List<Product>> GetByIdsAsync(Guid[] productIds)
     {
         return await dbContext.Products
-            .Where(p => ids.Contains(p.Id))
+            .Where(p => productIds.Contains(p.Id))
+            .ToListAsync();
+
+    }
+
+    public async Task<List<Product>> GetProductsBySellerIdAsync(Guid sellerId)
+    {
+        return await dbContext.Products
+            .AsNoTracking()
+            .Include(p => p.Warehouse)
+            .Include(p => p.Images)
+            .Where(p => p.SellerId == sellerId)
             .ToListAsync();
     }
     public async Task<List<Product>> GetByFilterAsync(string name, decimal price)
@@ -56,6 +68,19 @@ public class ProductRepository(EasyOnlineStoreDbContext dbContext) : IProductRep
             .ToListAsync();
     }
 
+    public async Task<List<Product>> GetProductsByPageBySellerIdAsync(Guid sellerId, int page, int pageSize)
+    {
+        return await dbContext.Products
+            .Where(s => s.SellerId == sellerId)
+            .AsNoTracking()
+            .Include(p => p.Warehouse)
+            .Include (p => p.Images)
+            .OrderBy(p => p.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
 
     public async Task<Product> CreateAsync(Product product)
     {
@@ -71,10 +96,16 @@ public class ProductRepository(EasyOnlineStoreDbContext dbContext) : IProductRep
         return product;
     }
 
-    public async Task<bool> RemoveAsync(Guid id)
+    public async Task UpdateRangeAsync(IEnumerable<Product> products)
+    {
+        dbContext.Products.UpdateRange(products);
+        await dbContext.SaveChangesAsync();
+    }
+    
+    public async Task<bool> RemoveAsync(Guid sellerId, Guid productId)
     {
         var result = await dbContext.Products
-            .Where(p => p.Id == id)
+            .Where(p => p.SellerId == sellerId && p.Id == productId)
             .ExecuteDeleteAsync();
 
         return result > 0;

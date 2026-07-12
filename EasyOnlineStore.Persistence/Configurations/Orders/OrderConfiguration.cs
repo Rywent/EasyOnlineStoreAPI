@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using EasyOnlineStore.Domain.Models.Orders;
+using EasyOnlineStore.Domain.Models.Users;
 
 namespace EasyOnlineStore.Persistence.Configurations.Orders;
 
@@ -19,6 +20,12 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .WithOne(p => p.Order)
             .HasForeignKey(k => k.OrderId)
             .OnDelete(DeleteBehavior.Cascade);
+        
+        builder
+            .HasOne<ApplicationUser>()
+            .WithMany(u => u.Orders)
+            .HasForeignKey(k => k.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
 
     }
