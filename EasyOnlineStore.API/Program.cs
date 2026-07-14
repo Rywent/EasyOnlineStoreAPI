@@ -2,6 +2,7 @@ using EasyOnlineStore.API.Extensions;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Application.Mapping;
 using EasyOnlineStore.Application.Services;
+using EasyOnlineStore.Application.Validators.Users;
 using EasyOnlineStore.Domain.Interfaces;
 using EasyOnlineStore.Persistence;
 using EasyOnlineStore.Persistence.Repositories;
@@ -9,7 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EasyOnlineStore.Domain.Models.Users;
 using EasyOnlineStore.Infrastructure.Jwt;
+using FluentValidation;
 using Microsoft.AspNetCore.Identity;
+using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +38,9 @@ builder.Services.AddAutoMapper(cfg =>
     cfg.AddProfile<CategoryProfile>();
 });
 
+// fluent validation
+builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+builder.Services.AddFluentValidationAutoValidation();
 
 // data base context
 builder.Services.AddDbContext<EasyOnlineStoreDbContext>(

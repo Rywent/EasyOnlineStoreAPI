@@ -10,7 +10,6 @@ namespace EasyOnlineStore.API.Controllers;
 public class UsersController(IUserService userService) : BaseApiController
 {
     #region AllUsers
-    
     // GET /api/users/profile
     [HttpGet("profile")]
     public async Task<ActionResult<UserProfileResponse>> GetProfile(CancellationToken ct = default)

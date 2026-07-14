@@ -79,7 +79,8 @@ public class CartService(ICartRepository cartRepository, IProductRepository prod
         {
             Id = Guid.NewGuid(), 
             Items = new List<CartItem>(), 
-            UserId = userId
+            UserId = userId,
+            User = null
         };
         
         var createdCart = await cartRepository.CreateAsync(cart, ct);

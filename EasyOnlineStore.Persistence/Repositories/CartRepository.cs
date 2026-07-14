@@ -28,6 +28,8 @@ public class CartRepository(EasyOnlineStoreDbContext dbContext) : ICartRepositor
 
     public async Task<Cart> CreateAsync(Cart cart, CancellationToken ct = default)
     {
+        cart.User = null;
+        
         await dbContext.Carts.AddAsync(cart, ct);
         await dbContext.SaveChangesAsync(ct);
         return cart;
