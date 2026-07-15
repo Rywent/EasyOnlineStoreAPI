@@ -6,21 +6,26 @@ using EasyOnlineStore.Domain.Enums;
 using EasyOnlineStore.Domain.Interfaces;
 using EasyOnlineStore.Domain.Models.Products;
 using EasyOnlineStore.Domain.Models.Orders;
+using Microsoft.Extensions.Logging;
 
 namespace EasyOnlineStore.Application.Services;
 
-public class OrderService(
+public partial class OrderService(
     IOrderRepository orderRepository,
     IProductRepository productRepository,
     ICartRepository cartRepository,
-    IMapper mapper)
+    IMapper mapper,
+    ILogger<OrderService> logger)
     : IOrderService
 {
     public async Task<OrderResponse> GetByUserIdAsync(Guid userId, Guid orderId, CancellationToken ct = default)
     {
         var order = await orderRepository.GetByUserIdAsync(userId, orderId, ct);
-        if (order == null) 
+        if (order == null)
+        {
+            LogOrderNotFound(logger, orderId, userId);
             throw new NotFoundException(nameof(Order), orderId);
+        }
 
         return mapper.Map<OrderResponse>(order);
     }
@@ -48,10 +53,16 @@ public class OrderService(
         var cart = await cartRepository.GetByUserIdAsync(userId, ct);
         
         if (cart == null)
+        {
+            LogCartNotFound(logger, userId);
             throw new NotFoundException($"Cart for user with ID '{userId}' was not found.");
+        }
 
         if (cart.Items == null || !cart.Items.Any())
+        {
+            LogCartEmpty(logger, userId);
             throw new InvalidOperationException("Cannot create an order from an empty cart.");
+        }
 
         var productIds = cart.Items.Select(i => i.ProductId).Distinct().ToArray();
         var products = await productRepository.GetByIdsAsync(productIds, ct);
@@ -60,9 +71,15 @@ public class OrderService(
         foreach (var cartItem in cart.Items)
         {
             if (!productsDict.TryGetValue(cartItem.ProductId, out var product))
+            {
+                LogProductInCartNotFound(logger, cartItem.ProductId, userId);
                 throw new NotFoundException(nameof(Product), cartItem.ProductId);
+            }
             if (product.Stock < cartItem.Quantity)
+            {
+                LogInsufficientStock(logger, product.Id, product.Name, cartItem.Quantity, product.Stock);
                 throw new InsufficientStockException(product, cartItem.Quantity);
+            }
         }
 
         var newOrder = new Order
@@ -94,6 +111,7 @@ public class OrderService(
         await orderRepository.CreateAsync(newOrder, ct);
         await cartRepository.ClearCartByUserIdAsync(userId, ct);
 
+        LogOrderCreated(logger, newOrder.Id, newOrder.OrderNumber, userId);
         return mapper.Map<OrderResponse>(newOrder);
     }
 
@@ -101,15 +119,22 @@ public class OrderService(
     {
         var order = await orderRepository.GetByUserIdAsync(userId, orderId, ct);
         if (order == null)
+        {
+            LogOrderNotFound(logger, orderId, userId);
             throw new NotFoundException(nameof(Order), orderId);
+        }
 
         order.Status = status;
 
         var updatedOrder = await orderRepository.UpdateAsync(order, ct);
 
         if (updatedOrder == null)
+        {
+            LogOrderUpdateFailed(logger, orderId);
             throw new InvalidOperationException("Failed to update order");
+        }
             
+        LogOrderStatusUpdated(logger, orderId, status);
         return mapper.Map<OrderResponse>(updatedOrder);
     }
 
@@ -117,10 +142,16 @@ public class OrderService(
     {
         var order = await orderRepository.GetByUserIdAsync(userId, orderId, ct);
         if (order == null)
+        {
+            LogOrderNotFound(logger, orderId, userId);
             throw new NotFoundException(nameof(Order), orderId);
+        }
 
         if (order.Status != OrderStatus.Pending)
+        {
+            LogOrderCancelFailedInvalidStatus(logger, orderId, order.Status);
             throw new InvalidOrderStatusException(order.Status, "cancel");
+        }
 
         var productIds = order.Items.Select(i => i.ProductId).Distinct().ToArray();
         var products = await productRepository.GetByIdsAsync(productIds, ct);
@@ -139,6 +170,7 @@ public class OrderService(
         order.Status = OrderStatus.Cancelled;
         var cancelledOrder = await orderRepository.UpdateAsync(order, ct);
 
+        LogOrderCancelled(logger, orderId, userId);
         return mapper.Map<OrderResponse>(cancelledOrder);
     }
 
@@ -146,9 +178,18 @@ public class OrderService(
     {
         var order = await orderRepository.GetByUserIdAsync(userId, orderId, ct);
         if (order == null)
+        {
+            LogOrderNotFound(logger, orderId, userId);
             throw new NotFoundException(nameof(Order), orderId);
+        }
         
-        return await orderRepository.RemoveByUserIdAsync(userId, orderId, ct);
+        var isDeleted = await orderRepository.RemoveByUserIdAsync(userId, orderId, ct);
+        if (isDeleted)
+        {
+            LogOrderDeleted(logger, orderId, userId);
+        }
+        
+        return isDeleted;
     }
     
     public async Task<bool> DeleteAllByUserIdAsync(Guid userId, CancellationToken ct = default)
@@ -156,8 +197,12 @@ public class OrderService(
         var deleted = await orderRepository.RemoveAllByUserIdAsync(userId, ct);
         
         if (!deleted)
+        {
+            LogDeleteAllOrdersFailedNoOrders(logger, userId);
             throw new NotFoundException($"User with {userId} id hasn't placed a single order yet");
+        }
 
+        LogAllOrdersDeleted(logger, userId);
         return deleted;
     }
 }

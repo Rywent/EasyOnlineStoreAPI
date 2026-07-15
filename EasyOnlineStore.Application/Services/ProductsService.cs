@@ -6,14 +6,16 @@ using EasyOnlineStore.Application.Exceptions;
 using EasyOnlineStore.Domain.Interfaces;
 using EasyOnlineStore.Domain.Models.Products;
 using EasyOnlineStore.Domain.Models.Categories;
+using Microsoft.Extensions.Logging;
 
 namespace EasyOnlineStore.Application.Services;
 
-public class ProductsService(
+public partial class ProductsService(
     IProductRepository productRepository,
     ICategoryRepository categoryRepository,
     IWarehouseRepository warehouseRepository,
-    IMapper mapper)
+    IMapper mapper,
+    ILogger<ProductsService> logger)
     : IProductService
 {
     public async Task<ProductResponse> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -21,7 +23,10 @@ public class ProductsService(
         var product = await productRepository.GetByIdAsync(id, ct);
 
         if (product == null)
+        {
+            LogProductNotFound(logger, id);
             throw new NotFoundException(nameof(Product), id);
+        }
 
         return mapper.Map<ProductResponse>(product);
     }
@@ -42,14 +47,19 @@ public class ProductsService(
     {
         var categoryCode = await categoryRepository.GetCodeByIdAsync(request.CategoryId, ct);
         if (categoryCode == null)
+        {
+            LogCategoryNotFound(logger, request.CategoryId);
             throw new NotFoundException(nameof(Category), request.CategoryId);
+        }
 
         var warehouse = await warehouseRepository.GetByIdAsync(request.WarehouseId, ct);
         if (warehouse == null || warehouse.OwnerUserId != sellerId)
+        {
+            LogWarehouseAccessDenied(logger, request.WarehouseId, sellerId);
             throw new ForbiddenException("Error adding the item. This warehouse does not belong to you.");
+        }
         
         var productEntity = mapper.Map<Product>(request);
-        
         var productId = Guid.NewGuid();
         
         productEntity.Id = productId;
@@ -66,7 +76,9 @@ public class ProductsService(
             ImageUrl = img.ImageUrl
         }).ToList();
         
-        var createdProduct = await productRepository.UpdateAsync(productEntity, ct);
+        var createdProduct = await productRepository.CreateAsync(productEntity, ct);
+        
+        LogProductCreated(logger, productEntity.Id, sellerId);
         return mapper.Map<ProductResponse>(createdProduct);
     }
 
@@ -74,16 +86,25 @@ public class ProductsService(
     {
         var existingProduct = await productRepository.GetByIdAsync(productId, ct);
         if (existingProduct == null)
+        {
+            LogProductNotFound(logger, productId);
             throw new NotFoundException(nameof(Product), productId);
+        }
 
         if (existingProduct.SellerId != sellerId)
+        {
+            LogProductUpdateAccessDenied(logger, productId, sellerId);
             throw new ForbiddenException("You do not have permission to update this product.");
+        }
         
         if (request.WarehouseId.HasValue && existingProduct.WarehouseId != request.WarehouseId.Value)
         {
             var warehouse = await warehouseRepository.GetByIdAsync(request.WarehouseId.Value, ct);
             if (warehouse == null || warehouse.OwnerUserId != sellerId)
+            {
+                LogProductMovedToWarehouseDenied(logger, productId, request.WarehouseId.Value, sellerId);
                 throw new ForbiddenException("You cannot move product to this warehouse. This warehouse does not belong to you.");
+            }
         }
         
         mapper.Map(request, existingProduct);
@@ -104,6 +125,8 @@ public class ProductsService(
         }
         
         var updatedProduct = await productRepository.UpdateAsync(existingProduct, ct);
+        
+        LogProductUpdated(logger, productId, sellerId);
         return mapper.Map<ProductResponse>(updatedProduct);
     }
 
@@ -111,10 +134,16 @@ public class ProductsService(
     {
         var product = await productRepository.GetByIdAsync(productId, ct);
         if (product == null)
+        {
+            LogProductNotFound(logger, productId);
             throw new NotFoundException(nameof(Product), productId);
+        }
 
         if (product.SellerId != sellerId)
+        {
+            LogProductImagesModifyAccessDenied(logger, productId, sellerId);
             throw new ForbiddenException("You do not have permission to modify this product's images.");
+        }
 
         var newImage = new ProductImage
         {
@@ -126,6 +155,7 @@ public class ProductsService(
         product.Images.Add(newImage);
         await productRepository.UpdateAsync(product, ct);
 
+        LogProductImageAdded(logger, newImage.Id, productId);
         return mapper.Map<ProductImageResponse>(newImage);
     }
 
@@ -133,10 +163,16 @@ public class ProductsService(
     {
         var product = await productRepository.GetByIdAsync(productId, ct);
         if (product == null)
+        {
+            LogProductNotFound(logger, productId);
             throw new NotFoundException(nameof(Product), productId);
+        }
 
         if (product.SellerId != sellerId)
+        {
+            LogProductImagesModifyAccessDenied(logger, productId, sellerId);
             throw new ForbiddenException("You do not have permission to modify this product's images.");
+        }
 
         var newImages = requests.Select(req => new ProductImage
         {
@@ -152,6 +188,7 @@ public class ProductsService(
 
         await productRepository.UpdateAsync(product, ct);
 
+        LogProductMultipleImagesAdded(logger, newImages.Count, productId);
         return mapper.Map<List<ProductImageResponse>>(newImages);
     }
 
@@ -159,18 +196,28 @@ public class ProductsService(
     {
         var product = await productRepository.GetByIdAsync(productId, ct);
         if (product == null)
+        {
+            LogProductNotFound(logger, productId);
             throw new NotFoundException(nameof(Product), productId);
+        }
 
         if (product.SellerId != sellerId)
+        {
+            LogProductImagesModifyAccessDenied(logger, productId, sellerId);
             throw new ForbiddenException("You do not have permission to modify this product's images.");
+        }
         
         var imageToRemove = product.Images.FirstOrDefault(img => img.Id == imageId);
         if (imageToRemove == null)
+        {
+            LogProductImageNotFound(logger, imageId, productId);
             throw new NotFoundException("Image", imageId);
+        }
 
         product.Images.Remove(imageToRemove);
         await productRepository.UpdateAsync(product, ct);
 
+        LogProductImageDeleted(logger, imageId, productId);
         return true;
     }
 
@@ -179,12 +226,24 @@ public class ProductsService(
         var product = await productRepository.GetByIdAsync(productId, ct);
         
         if (product == null)
+        {
+            LogProductNotFound(logger, productId);
             throw new NotFoundException(nameof(Product), productId);
+        }
         
         if (product.SellerId != sellerId)
+        {
+            LogProductDeleteAccessDenied(logger, productId, sellerId);
             throw new ForbiddenException("You do not have permission to delete this product.");
+        }
         
-        return await productRepository.RemoveAsync(sellerId, productId, ct);
+        var isRemoved = await productRepository.RemoveAsync(sellerId, productId, ct);
+        if (isRemoved)
+        {
+            LogProductDeleted(logger, productId, sellerId);
+        }
+
+        return isRemoved;
     }
 
     private string GenerateSku(string productName, string categoryCode, Guid productId)
@@ -197,9 +256,7 @@ public class ProductsService(
         if (string.IsNullOrEmpty(cleanName)) 
             cleanName = "PROD";
         
-        string namePart = cleanName.Length <= 6 
-            ? cleanName 
-            : cleanName.Substring(0, 6);
+        string namePart = cleanName.Length <= 6 ? cleanName : cleanName.Substring(0, 6);
         
         string categoryPart = categoryCode.Trim().ToUpper();
 

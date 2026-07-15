@@ -5,11 +5,16 @@ using EasyOnlineStore.Application.DTOs.Responses.Warehouse;
 using EasyOnlineStore.Application.Interfaces;
 using EasyOnlineStore.Domain.Interfaces;
 using EasyOnlineStore.Domain.Models.Warehouses;
+using Microsoft.Extensions.Logging;
 
 namespace EasyOnlineStore.Application.Services;
 
-public class WarehouseService(IWarehouseRepository warehouseRepository, IMapper mapper) : IWarehouseService
+public partial class WarehouseService(
+    IWarehouseRepository warehouseRepository,
+    IMapper mapper,
+    ILogger<WarehouseService> logger) : IWarehouseService
 {
+
     public async Task<List<WarehouseShortResponse>> GetByPageAsync(int page, int pageSize, CancellationToken ct = default)
     {
         var warehouses = await warehouseRepository.GetByPageAsync(page, pageSize, ct);
@@ -20,7 +25,10 @@ public class WarehouseService(IWarehouseRepository warehouseRepository, IMapper 
     {
         var warehouse = await warehouseRepository.GetByIdAsync(warehouseId, ct);
         if (warehouse == null)
+        {
+            LogWarehouseNotFound(logger, warehouseId);
             throw new NotFoundException(nameof(Warehouse), warehouseId);
+        }
 
         return mapper.Map<WarehouseResponse>(warehouse);
     }
@@ -29,17 +37,22 @@ public class WarehouseService(IWarehouseRepository warehouseRepository, IMapper 
     {
         var warehouse = await warehouseRepository.GetWarehouseByUserIdAsync(userId, warehouseId, ct);
         if (warehouse == null)
+        {
+            LogWarehouseNotFoundForUser(logger, warehouseId, userId);
             throw new NotFoundException(nameof(Warehouse), warehouseId);
+        }
 
         return mapper.Map<WarehouseResponse>(warehouse);
     }
 
     public async Task<List<WarehouseResponse>> GetWarehousesByUserIdAsync(Guid userId, int page, int pageSize, CancellationToken ct = default)
     {
-        // Передаем параметры пагинации пользователя прямо в репозиторий
         var warehouses = await warehouseRepository.GetWarehousesByUserIdAsync(userId, page, pageSize, ct);
         if (warehouses == null || !warehouses.Any())
+        {
+            LogNoWarehousesForUser(logger, userId);
             throw new NotFoundException($"User with ID {userId} has no warehouses on this page");
+        }
 
         return mapper.Map<List<WarehouseResponse>>(warehouses);
     }
@@ -50,6 +63,8 @@ public class WarehouseService(IWarehouseRepository warehouseRepository, IMapper 
         warehouse.OwnerUserId = userId;
         
         var createdWarehouse = await warehouseRepository.CreateAsync(warehouse, ct);
+        
+        LogWarehouseCreated(logger, createdWarehouse.Id, userId);
         return mapper.Map<WarehouseResponse>(createdWarehouse);
     }
 
@@ -57,12 +72,17 @@ public class WarehouseService(IWarehouseRepository warehouseRepository, IMapper 
     {
         var existingWarehouse = await warehouseRepository.GetWarehouseByUserIdAsync(userId, warehouseId, ct);
         if (existingWarehouse == null)
+        {
+            LogWarehouseNotFoundForUser(logger, warehouseId, userId);
             throw new NotFoundException(nameof(Warehouse), warehouseId);
+        }
 
         mapper.Map(request, existingWarehouse);
         existingWarehouse.OwnerUserId = userId;
         
         var updatedWarehouse = await warehouseRepository.UpdateAsync(existingWarehouse, ct);
+        
+        LogWarehouseUpdated(logger, updatedWarehouse.Id, userId);
         return mapper.Map<WarehouseResponse>(updatedWarehouse);
     }
 
@@ -70,18 +90,26 @@ public class WarehouseService(IWarehouseRepository warehouseRepository, IMapper 
     {
         var closed = await warehouseRepository.CloseAllByUserIdAsync(userId, ct);
         if (!closed)
+        {
+            LogNoActiveWarehousesToClose(logger, userId);
             throw new NotFoundException($"User with ID {userId} has no active warehouses");
+        }
 
+        LogAllWarehousesClosed(logger, userId);
         return true;
     }
     
     public async Task<bool> DeleteByUserIdAsync(Guid userId, Guid warehouseId, CancellationToken ct = default)
     {
         var deleted = await warehouseRepository.RemoveByUserIdAsync(userId, warehouseId, ct);
-        
-        if (!deleted)
-            throw new NotFoundException(nameof(Warehouse), warehouseId);
 
+        if (!deleted)
+        {
+            LogWarehouseDeleteFailed(logger, warehouseId, userId);
+            throw new NotFoundException(nameof(Warehouse), warehouseId);
+        }
+
+        LogWarehouseDeleted(logger, warehouseId, userId);
         return deleted;
     }
 }

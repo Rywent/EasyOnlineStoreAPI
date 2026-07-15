@@ -13,114 +13,150 @@ using EasyOnlineStore.Infrastructure.Jwt;
 using FluentValidation;
 using Microsoft.AspNetCore.Identity;
 using SharpGrip.FluentValidation.AutoValidation.Mvc.Extensions;
+using Serilog;
 
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .CreateLogger();
 
-var builder = WebApplication.CreateBuilder(args);
-var configuration = builder.Configuration;
-
-// base services
-builder.Services.AddControllers();
-builder.Services.AddOpenApi(options =>
+try
 {
-    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
-});
+    Log.Information("Starting web application...");
+    
+    var builder = WebApplication.CreateBuilder(args);
+    var configuration = builder.Configuration;
 
-
-
-// mapper
-builder.Services.AddAutoMapper(cfg =>
-{
-    cfg.AddProfile<UserProfile>();
-    cfg.AddProfile<ProductProfile>();
-    cfg.AddProfile<CartProfile>();
-    cfg.AddProfile<OrderProfile>();
-    cfg.AddProfile<WarehouseProfile>();
-    cfg.AddProfile<CategoryProfile>();
-});
-
-// fluent validation
-builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
-builder.Services.AddFluentValidationAutoValidation();
-
-// data base context
-builder.Services.AddDbContext<EasyOnlineStoreDbContext>(
-    options =>
+    // serilog
+    builder.Host.UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services));
+    
+    // base services
+    builder.Services.AddControllers();
+    builder.Services.AddOpenApi(options =>
     {
-        options.UseNpgsql(configuration.GetConnectionString(nameof(EasyOnlineStoreDbContext)));
+        options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
     });
 
 
-// microsoft user identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
-    .AddEntityFrameworkStores<EasyOnlineStoreDbContext>()
-    .AddDefaultTokenProviders();
 
-// jwt setting
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtOptions>() 
-                  ?? throw new Exception("JwtSettings not configured");
+    // mapper
+    builder.Services.AddAutoMapper(cfg =>
+    {
+        cfg.AddProfile<UserProfile>();
+        cfg.AddProfile<ProductProfile>();
+        cfg.AddProfile<CartProfile>();
+        cfg.AddProfile<OrderProfile>();
+        cfg.AddProfile<WarehouseProfile>();
+        cfg.AddProfile<CategoryProfile>();
+    });
 
-builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSettings"));
-builder.Services.AddScoped<JwtProvider>(); 
-
-// authentication
-builder.Services.AddApiAuthentication(jwtSettings);
-builder.Services.AddApiAuthorization();
-
-// registration repositories
-builder.Services.AddScoped<IUserRepository, UserRepository>(
-    provider => new UserRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
-builder.Services.AddScoped<IProductRepository, ProductRepository>(
-    provider => new ProductRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>(
-    provider => new CategoryRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
-builder.Services.AddScoped<ICartRepository, CartRepository>(
-    provider => new CartRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
-builder.Services.AddScoped<IOrderRepository, OrderRepository>(
-    provider => new OrderRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
-builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>(
-    provider => new WarehouseRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
-
-// registration services
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IProductService, ProductsService>();
-builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<IWarehouseService, WarehouseService>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
+    // fluent validation
+    builder.Services.AddValidatorsFromAssemblyContaining<RegisterRequestValidator>();
+    builder.Services.AddFluentValidationAutoValidation();
 
 
-// disable automatic ModelState validation
-builder.Services.Configure<ApiBehaviorOptions>(options =>
-{
-    options.SuppressModelStateInvalidFilter = true;
-});
+    // rate limiting
+    builder.Services.AddRateLimiting();
 
-// build app
-var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
+    // data base context
+    builder.Services.AddDbContext<EasyOnlineStoreDbContext>(
+        options =>
+        {
+            options.UseNpgsql(configuration.GetConnectionString(nameof(EasyOnlineStoreDbContext)));
+        });
+
+
+    // microsoft user identity
+    builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
+        .AddEntityFrameworkStores<EasyOnlineStoreDbContext>()
+        .AddDefaultTokenProviders();
+
+    // jwt setting
+    var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtOptions>() 
+                      ?? throw new Exception("JwtSettings not configured");
+
+    builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("JwtSettings"));
+    builder.Services.AddScoped<JwtProvider>(); 
+
+    // authentication
+    builder.Services.AddApiAuthentication(jwtSettings);
+    builder.Services.AddApiAuthorization();
+
+    // registration repositories
+    builder.Services.AddScoped<IUserRepository, UserRepository>(
+        provider => new UserRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+    builder.Services.AddScoped<IProductRepository, ProductRepository>(
+        provider => new ProductRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+    builder.Services.AddScoped<ICategoryRepository, CategoryRepository>(
+        provider => new CategoryRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+    builder.Services.AddScoped<ICartRepository, CartRepository>(
+        provider => new CartRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+    builder.Services.AddScoped<IOrderRepository, OrderRepository>(
+        provider => new OrderRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+    builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>(
+        provider => new WarehouseRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+
+    // registration services
+    builder.Services.AddScoped<IUserService, UserService>();
+    builder.Services.AddScoped<IProductService, ProductsService>();
+    builder.Services.AddScoped<ICartService, CartService>();
+    builder.Services.AddScoped<IOrderService, OrderService>();
+    builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+    builder.Services.AddScoped<ICategoryService, CategoryService>();
+
+
+    // disable automatic ModelState validation
+    builder.Services.Configure<ApiBehaviorOptions>(options =>
+    {
+        options.SuppressModelStateInvalidFilter = true;
+    });
+
+    // build app
+    var app = builder.Build();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.MapOpenApi();
+        
+    }
+
     
+
+    // routing
+    app.UseRouting();
+
+    app.UseSerilogRequestLogging();
+    
+    // global custom exceptions
+    app.UseGlobalExceptionHandler();
+    
+    app.UseRateLimiter();
+
+    app.UseHttpsRedirection();
+
+    // authentication
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+
+    app.MapControllers();
+
+    app.Run();
+
+}
+catch (Exception ex)
+{
+    Log.Fatal(ex, "Application terminated unexpectedly");
+}
+finally
+{
+    Log.CloseAndFlush();
 }
 
-// global custom exceptions
-app.UseGlobalExceptionHandler();
-
-// routing
-app.UseRouting();
-app.UseHttpsRedirection();
-
-// authentication
-app.UseAuthentication();
-app.UseAuthorization();
-
-
-app.MapControllers();
-
-app.Run();

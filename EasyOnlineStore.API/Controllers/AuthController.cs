@@ -3,13 +3,13 @@ using EasyOnlineStore.Application.DTOs.Responses.User;
 using EasyOnlineStore.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace EasyOnlineStore.API.Controllers;
 
-
+[EnableRateLimiting("auth")]
 public class AuthController(IUserService userService, ICartService cartService) : BaseApiController
 {
-    
     // POST api/auth/register
     [HttpPost("register")]
     [AllowAnonymous]

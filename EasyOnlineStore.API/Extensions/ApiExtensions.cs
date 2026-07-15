@@ -1,10 +1,10 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Threading.RateLimiting;
 using EasyOnlineStore.Application.Exceptions;
 using EasyOnlineStore.Domain.Enums;
 using EasyOnlineStore.Infrastructure.Jwt;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
@@ -62,17 +62,18 @@ public static class ApiExtensions
     
     public static void UseGlobalExceptionHandler(this IApplicationBuilder app)
     {
-        app.UseExceptionHandler(errorApp =>
+        app.Use(async (context, next) =>
         {
-            errorApp.Run(async context =>
+            try
             {
-                var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
-                var exception = exceptionHandlerPathFeature?.Error;
-
+                await next(context);
+            }
+            catch (Exception exception)
+            {
                 var problemDetails = new ProblemDetails
                 {
-                    Title = exception?.GetType().Name ?? "Internal Server Error",
-                    Detail = exception?.Message,
+                    Title = exception.GetType().Name,
+                    Detail = exception.Message,
                     Status = exception switch
                     {
                         NotFoundException => StatusCodes.Status404NotFound,
@@ -82,14 +83,58 @@ public static class ApiExtensions
                         UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
                         _ => StatusCodes.Status500InternalServerError
                     },
-                    Instance = exceptionHandlerPathFeature?.Path,
-                    Type = exception?.GetType().FullName
+                    Instance = context.Request.Path,
+                    Type = exception.GetType().FullName
                 };
+                
+                var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
 
+                if (problemDetails.Status >= 500)
+                {
+                    logger.LogError(exception, "An unhandled exception occurred: {Message}", exception.Message);
+                }
+                else
+                {
+                    logger.LogWarning("Business error handled: {Message}", exception.Message);
+                }
+                
                 context.Response.StatusCode = problemDetails.Status.Value;
                 context.Response.ContentType = "application/problem+json";
                 await context.Response.WriteAsJsonAsync(problemDetails);
-            });
+            }
         });
     }
+        
+    public static void AddRateLimiting(this IServiceCollection services)
+    {
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            
+            options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+            {
+                string ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+                
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: ipAddress,
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 150,
+                        Window = TimeSpan.FromMinutes(1),
+                        QueueLimit = 2
+                    });
+            });
+            
+            options.AddPolicy("auth", httpContext =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = 5,
+                        Window = TimeSpan.FromMinutes(5),
+                        QueueLimit = 0
+                    }));
+        });
+    }
+    
 }
