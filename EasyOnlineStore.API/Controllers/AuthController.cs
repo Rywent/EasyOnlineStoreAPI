@@ -21,7 +21,7 @@ public class AuthController(IUserService userService, ICartService cartService) 
             await cartService.CreateCartAsync(result.Id);
             return CreatedAtAction(nameof(Register), new { id = result.Id }, result);
         }
-        return BadRequest("User not found");
+        return BadRequest("Registration failed");
     }
 
     // POST api/auth/login
@@ -31,5 +31,25 @@ public class AuthController(IUserService userService, ICartService cartService) 
     {
         var result = await userService.LoginAsync(request);
         return Ok(result);
+    }
+    
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    public async Task<ActionResult<AuthResponse>> Refresh([FromBody] RefreshTokenRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request?.RefreshToken))
+            return BadRequest("Refresh token is required");
+        
+        var result = await userService.RefreshTokenAsync(request.RefreshToken);
+        return Ok(result);
+    }
+
+    [HttpPost("logout")]
+    [Authorize]
+    public async Task<IActionResult> Logout([FromBody] RefreshTokenRequest request)
+    {
+        var userId = GetUserIdFromToken();
+        await userService.LogoutAsync(userId, request.RefreshToken);
+        return Ok(new { message = "Logged out successfully" });
     }
 }

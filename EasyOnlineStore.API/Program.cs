@@ -102,7 +102,11 @@ try
 
     builder.Services.AddScoped<IWarehouseRepository, WarehouseRepository>(
         provider => new WarehouseRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
+    
+    builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>(
+        provider => new RefreshTokenRepository(provider.GetRequiredService<EasyOnlineStoreDbContext>()));
 
+    
     // registration services
     builder.Services.AddScoped<IUserService, UserService>();
     builder.Services.AddScoped<IProductService, ProductsService>();
